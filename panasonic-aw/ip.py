@@ -5,6 +5,9 @@ class camera:
     def __init__(self, address):
         self.address = address
         self.time_of_last_command = 0
+        self.__command_prefix = '%23'
+
+        self.__power_states = [ 0, 1, 'f', 'n']
 
     def __timeMillis(self):
         milliseconds = int(round(time.time() * 1000))
@@ -19,35 +22,51 @@ class camera:
         return 1
 
     def __sendCommand(self, command):
+        #sends command to camera
+
+        #fist check if command is being set to clost to another
         current_time = self.__timeMillis()
         time_dif = current_time - self.time_of_last_command
-        print("last commad: %s" % self.time_of_last_command)
-        print("current command: %s" % current_time)
-        print("time Difference: %s" % time_dif)
-        
         if self.time_of_last_command == 0:
             pass
         else:
-
             if time_dif < 130 :
                 print("ERROR: Command sent to fast. Please wait at least 130ms between commands.")
                 return -2
+        #if enough time has elapsed then parse and send command
+        #parse command
         command_to_send = 'http://' + self.address + '/cgi-bin/aw_ptz?cmd=' + command +"&res=1"
         print(command_to_send)
+        #send command to camera
         response = requests.get(command_to_send)
+        #update timestamp for last command
         self.time_of_last_command = current_time
-        if response != 200:
-            err = self.__handleCamError(response)
-            return err
-        else:
-            return 0 
+        return response
 
     def sendRaw(self, command):
         err = self.__sendCommand(command)
         if err != 0:
             print(err)
 
-    #def
+    def queryPower(self):
+        resp = self.__sendCommand(self.__command_prefix + "O")
+        if resp.text == 'p1':
+            return 1
+        elif resp.text == 'p3':
+            return 3
+        elif resp.text == 'p0':
+            return 0
+        else:
+            print("ERROR: Error retriving power status.")
+            return -1
+    
+    def setPower(self, state):
+        if state not in self.__power_states:
+            print("ERROR: Invalid state requested")
+            return -1
+        else:
+            resp = self.__sendCommand(self.__command_prefix + "O" + str(state))
+
 
 
 if __name__ == '__main__':
@@ -60,5 +79,4 @@ if __name__ == '__main__':
         cam_address = "192.168.0.10"
 
     c = camera(cam_address)
-    c.sendRaw('test')
-    c.sendRaw('a')
+    
