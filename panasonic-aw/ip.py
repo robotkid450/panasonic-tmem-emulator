@@ -50,6 +50,7 @@ class camera:
 
     def queryPower(self):
         resp = self.__sendCommand(self.__command_prefix + "O")
+        print(resp)
         if resp.text == 'p1':
             return 1
         elif resp.text == 'p3':
@@ -67,11 +68,16 @@ class camera:
         else:
             resp = self.__sendCommand(self.__command_prefix + "O" + str(state))
 
+    def setPosABS(self, x, y):
+        resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
+
+    def presetPlay(self, preset):
+        
 
 
 if __name__ == '__main__':
 
-    devEnv=True
+    devEnv=False
 
     if devEnv == True:
         cam_address = "localhost:8000"
@@ -79,4 +85,4 @@ if __name__ == '__main__':
         cam_address = "192.168.0.10"
 
     c = camera(cam_address)
-    
+    print(c.setPosABS(8000, 8000))
