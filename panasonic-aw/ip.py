@@ -72,7 +72,11 @@ class camera:
         resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
 
     def presetPlay(self, preset):
-        
+        pass
+
+    def queryPosition(self):
+        resp = self.__sendCommadn(self.__command_prefix + "APC")
+        print(resp)
 
 
 if __name__ == '__main__':
@@ -85,4 +89,4 @@ if __name__ == '__main__':
         cam_address = "192.168.0.10"
 
     c = camera(cam_address)
-    print(c.setPosABS(8000, 8000))
+    #print(c.setPosABS(8000, 8000))
