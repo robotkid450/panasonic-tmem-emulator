@@ -1,3 +1,4 @@
+
 import requests
 import time
 
@@ -75,8 +76,14 @@ class camera:
         pass
 
     def queryPosition(self):
-        resp = self.__sendCommadn(self.__command_prefix + "APC")
+        resp = self.__sendCommand(self.__command_prefix + "APC")
         print(resp)
+        print(resp.text)
+        pan = resp.text[3:-4]
+        tilt = resp.text[7:]
+        
+        
+
 
 
 if __name__ == '__main__':
@@ -90,3 +97,5 @@ if __name__ == '__main__':
 
     c = camera(cam_address)
     #print(c.setPosABS(8000, 8000))
+    #time.sleep(0.14)
+    c.queryPosition()
