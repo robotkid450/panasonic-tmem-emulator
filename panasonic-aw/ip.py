@@ -1,4 +1,3 @@
-
 import requests
 import time
 
@@ -51,14 +50,7 @@ class camera:
 
         value = hex(value)
 
-        value = str(value)
-
-        # if type(value) != str:
-            # print("non string value")
-            # print(value)
-            # value = str(value)
-        # 
-        
+        value = str(value)        
 
         value_pad = value[2:].zfill(4)
         return value_pad
@@ -101,6 +93,13 @@ class camera:
         print(resp.text)
         RAW_pan = resp.text[3:-4]
         RAW_tilt = resp.text[7:]
+        pan = self.__intToHex(RAW_pan)
+        tilt = self.__intToHex(RAW_tilt)
+
+        pos = (pan, tilt)
+
+        return pos
+
 
     def testith(self, value):
         a = self.__intToHex(value)
