@@ -112,7 +112,7 @@ class camera:
 
 if __name__ == '__main__':
 
-    devEnv=False
+    devEnv=True
 
     if devEnv == True:
         cam_address = "localhost:8000"
