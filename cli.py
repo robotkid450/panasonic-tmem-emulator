@@ -1,10 +1,15 @@
 #!python
 
 import sys
+from panasonicAW import ip
 
+
+headAddr = "localhost:8000"
 
 def getPosition():
     print("get position")
+    pos = head.queryPosition()
+    return pos
 
 def addTmem():
     print("adding TMEM")
@@ -21,6 +26,7 @@ def playTmem(args):
 
 
 
+head = ip.camera(headAddr)
 
 args = sys.argv
 
