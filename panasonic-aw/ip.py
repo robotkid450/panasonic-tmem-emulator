@@ -1,4 +1,3 @@
-
 import requests
 import time
 
@@ -44,6 +43,19 @@ class camera:
         self.time_of_last_command = current_time
         return response
 
+    def __intToHex(self, value, pad=4):
+
+        if type(value) == str:
+            value = int(value)
+
+        value = hex(value)
+
+        value = str(value)        
+
+        value_pad = value[2:].zfill(4)
+        return value_pad
+        
+
     def sendRaw(self, command):
         err = self.__sendCommand(command)
         if err != 0:
@@ -79,8 +91,20 @@ class camera:
         resp = self.__sendCommand(self.__command_prefix + "APC")
         print(resp)
         print(resp.text)
-        pan = resp.text[3:-4]
-        tilt = resp.text[7:]
+        RAW_pan = resp.text[3:-4]
+        RAW_tilt = resp.text[7:]
+        pan = self.__intToHex(RAW_pan)
+        tilt = self.__intToHex(RAW_tilt)
+
+        pos = (pan, tilt)
+
+        return pos
+
+
+    def testith(self, value):
+        a = self.__intToHex(value)
+        print(a)
+
         
         
 
@@ -98,4 +122,7 @@ if __name__ == '__main__':
     c = camera(cam_address)
     #print(c.setPosABS(8000, 8000))
     #time.sleep(0.14)
-    c.queryPosition()
+    #c.queryPosition()
+    c.testith(255)
+    c.testith(65535)
+    c.testith(0)
