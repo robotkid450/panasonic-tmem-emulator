@@ -8,6 +8,7 @@ class camera:
         self.__command_prefix = '%23'
 
         self.__power_states = [ 0, 1, 'f', 'n']
+        self.rangelimitHex = {"pan":(0x2D09, 0xD2f5), "tilt": (0x5555, 0x8E38) }
 
     def __timeMillis(self):
         milliseconds = int(round(time.time() * 1000))
@@ -54,6 +55,15 @@ class camera:
 
         value_pad = value[2:].zfill(4)
         return value_pad
+
+    def __hexToInt(self, value): #converts hexvalut
+        if type(vaule) != int:
+            vaule = int(value, 16)
+        
+        return value
+
+    #def __rangeChceckHex(self, value):
+        #if 
         
 
     def sendRaw(self, command):
