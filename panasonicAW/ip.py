@@ -83,7 +83,22 @@ class camera:
 
     def setPosABS(self, x, y):
         resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
+        return resp
 
+    def setPanSpeed(self, speed):
+        resp = self.__sendCommand(self.__command_prefix + "P" + str(speed))
+        return resp
+    
+    def setTiltSpeed(self, speed):
+        resp = self.__sendCommand(self.__command_prefix + "T" + str(speed))
+        return resp
+    
+    def setPanTileSpeed(self, pan_speed, tilt_speed):
+        resp = self.__sendCommand(self.__command_prefix + "PTS" + str(pan_speed) + str(tilt_speed))
+        return resp
+
+    def moveStop(self):
+        return self.setPanTileSpeed('50', '50')
 
     def presetPlay(self, preset):
         pass
@@ -125,7 +140,3 @@ if __name__ == '__main__':
     #time.sleep(0.14)
     c.queryPosition()
     time.sleep(0.14)
-    # c.testith(255)
-    # c.testith(65535)
-    # c.testith(0)
-    print(c.setPosABSS('8000', '8000', '00h', '0'))
