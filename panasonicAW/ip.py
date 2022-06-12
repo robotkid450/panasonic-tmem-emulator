@@ -46,7 +46,7 @@ class camera:
     def __intToHex(self, value, pad=4):
 
         if type(value) == str:
-            value = int(value)
+            value = int(value, 16)
 
         value = hex(value)
 
@@ -83,6 +83,10 @@ class camera:
 
     def setPosABS(self, x, y):
         resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
+
+    def setPosABSS(self, x, y, z, s):
+        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x) + str(y) + str(z) + str(s))
+
 
     def presetPlay(self, preset):
         pass
@@ -122,7 +126,9 @@ if __name__ == '__main__':
     c = camera(cam_address)
     #print(c.setPosABS(8000, 8000))
     #time.sleep(0.14)
-    #c.queryPosition()
-    c.testith(255)
-    c.testith(65535)
-    c.testith(0)
+    c.queryPosition()
+    time.sleep(0.14)
+    # c.testith(255)
+    # c.testith(65535)
+    # c.testith(0)
+    print(c.setPosABSS('8000', '8000', '00h', '0'))
