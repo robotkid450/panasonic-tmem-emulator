@@ -84,9 +84,6 @@ class camera:
     def setPosABS(self, x, y):
         resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
 
-    def setPosABSS(self, x, y, z, s):
-        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x) + str(y) + str(z) + str(s))
-
 
     def presetPlay(self, preset):
         pass
