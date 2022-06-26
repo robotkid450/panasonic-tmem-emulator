@@ -1,8 +1,11 @@
 #!python
 
 import sys
+import pickle
 from panasonicAW import ip
 
+#path of tmem storage file
+TmemStore = "tmems.pickle"
 
 headAddr = "localhost:8000"
 
