@@ -101,7 +101,30 @@ class camera:
         return self.setPanTileSpeed('50', '50')
 
     def presetPlay(self, preset):
-        pass
+        resp = self.__sendCommand(self.__command_prefix + "R" + str(preset))
+        return resp
+    
+    def presetRegister(self, preset):
+        resp = self.__sendCommand(self.__command_prefix + "M" + str(preset))
+        return resp
+
+    def presetDelet(self, preset):
+        resp = self.__sendCommand(self.__command_prefix + "C" + str(preset))
+        return resp
+
+    def presetQuery(self):
+        resp = self.__sendCommand(self.__command_prefix + "S")
+        preset = int(resp.text[1:]) #strip data prefix and convert from string to int
+        return preset
+
+    def presetSpeedSet(self, speed):
+        resp = self.__sendCommand(self.__command_prefix + "UPVS" + str(speed))
+        return resp
+
+    def presetSpeedquery(self):
+        resp = self.__sendCommand(self.__command_prefix + "UPVS")
+        speed = int(resp.text[4:]) #strip data prefix and convert from string to int
+        return speed
 
     def queryPosition(self):
         resp = self.__sendCommand(self.__command_prefix + "APC")
