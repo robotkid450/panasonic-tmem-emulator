@@ -32,6 +32,9 @@ class tmem:
     def setId(self, id) -> None:
         self.id = id
 
+    def setRunTime(self, runTime:int) -> None:
+        self.runtime = runTime
+
     def getPosStart(self) -> tuple:
         return self.pos_start
     
@@ -52,6 +55,9 @@ class tmem:
 
     def getId(self) -> int:
         return self.id
+
+    def getRunTime(self) -> int:
+        return self.runtime
 
     def debugFillTmem(self):
         self.pos_start = self.debugRandPos()

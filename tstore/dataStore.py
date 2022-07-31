@@ -32,7 +32,7 @@ class dataStore:
         
         
 
-    def addTmem(self, tmem: tmem):
+    def tmemAdd(self, tmem: tmem):
         if self.tmems_loaded == False:
             self.loadPickle()
         
