@@ -79,4 +79,4 @@ elif userCommand == 'del':
     tmem_to_delete = int(userCommandArgs.pop())
     tmemDel(tmem_to_delete)
 else:
-    print("erorr")
+    print("ERROR: Invalid command")
