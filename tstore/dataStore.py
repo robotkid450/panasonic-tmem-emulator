@@ -36,7 +36,12 @@ class dataStore:
         if self.tmems_loaded == False:
             self.loadPickle()
         
-        tmemId = len(self.tmems)
+        if (len(self.tmems) == 0):
+            tmemId = 0
+        else:
+            tmemsQuatity = len(self.tmems)
+            tmemId = self.tmems[(tmemsQuatity + 1)]
+            
         tmemItem = tmem
         tmemItem.id = tmemId
 
