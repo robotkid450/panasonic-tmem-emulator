@@ -40,7 +40,7 @@ class dataStore:
             tmemId = 0
         else:
             tmemsQuatity = len(self.tmems)
-            tmemId = self.tmems[(tmemsQuatity + 1)]
+            tmemId = tmemsQuatity
             
         tmemItem = tmem
         tmemItem.id = tmemId

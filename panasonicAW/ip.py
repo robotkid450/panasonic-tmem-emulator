@@ -16,8 +16,6 @@ class camera:
 
 
     def __handleCamError(self, responce):
-        if devEnv == True:
-            return 0
         print("ERROR: Camera head reported an error.")
         print(responce.text)
         return 1
@@ -25,7 +23,7 @@ class camera:
     def __sendCommand(self, command):
         #sends command to camera
 
-        #fist check if command is being set to clost to another
+        #fist check if command is being set to close to another
         current_time = self.__timeMillis()
         time_dif = current_time - self.time_of_last_command
         if self.time_of_last_command == 0:
@@ -64,6 +62,13 @@ class camera:
 
     #def __rangeChceckHex(self, value):
         #if 
+
+    def __presetCheckPadding(self, preset):
+        preset = str(preset)
+        if len(preset) == 1:
+            preset = "0" + preset
+        
+        return preset
         
 
     def sendRaw(self, command):
@@ -92,7 +97,11 @@ class camera:
             resp = self.__sendCommand(self.__command_prefix + "O" + str(state))
 
     def setPosABS(self, x, y):
-        resp = self.__sendCommand(self.__command_prefix + "APC" + str(x) + str(y))
+        resp = self.__sendCommand(self.__command_prefix + "APC" + str(x).upper() + str(y).upper())
+        return resp
+    
+    def setPosABSSpeed(self, x, y, speed, speedTable):
+        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x).upper() + str(y).upper() + str(speed).upper() + str(speedTable).upper())
         return resp
 
     def setPanSpeed(self, speed):
@@ -111,14 +120,17 @@ class camera:
         return self.setPanTileSpeed('50', '50')
 
     def presetPlay(self, preset):
+        preset = self.__presetCheckPadding(preset)
         resp = self.__sendCommand(self.__command_prefix + "R" + str(preset))
         return resp
     
     def presetRegister(self, preset):
+        preset = self.__presetCheckPadding(preset)
         resp = self.__sendCommand(self.__command_prefix + "M" + str(preset))
         return resp
 
-    def presetDelet(self, preset):
+    def presetDelete(self, preset):
+        preset = self.__presetCheckPadding(preset)
         resp = self.__sendCommand(self.__command_prefix + "C" + str(preset))
         return resp
 
@@ -161,12 +173,7 @@ class camera:
 
 if __name__ == '__main__':
 
-    devEnv=True
-
-    if devEnv == True:
-        cam_address = "localhost:8000"
-    else:
-        cam_address = "192.168.0.10"
+    cam_address = "192.168.1.150"
 
     c = camera(cam_address)
     #print(c.setPosABS(8000, 8000))

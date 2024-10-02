@@ -2,14 +2,17 @@
 
 import sys
 import pickle
+import time
 from panasonicAW import ip
 from tstore import tmem
 from tstore import dataStore
 
+#proof of concept for camera control
+
 #path of tmem storage file
 TmemStore = "tmems.pickle"
 
-headAddr = "localhost:8000"
+headAddr = "192.168.1.150"
 
 def getPosition():
     print("get position")
@@ -20,13 +23,13 @@ def tmemAdd():
     print("adding TMEM")
     print("Position starting key frame, then press ENTER.")
     input()
-    startPos = (0,0)
-    #startPos = head.queryPosition()
-    #startZoom = head.queryZoom()
+    #startPos = (0,0)
+    startPos = head.queryPosition()
+    # startZoom = head.queryZoom()
     print("Position ending keyframe, the press ENTER.")
     input()
-    #endPos = head.queryPosition()
-    endPos = (100, 100)
+    endPos = head.queryPosition()
+    #endPos = (100, 100)
     print("Please enter period to run in seconds")
     runtime = input()
     mem = tmem.tmem()
@@ -45,9 +48,13 @@ def tmemDel(id):
     tmem_data_store.removeTmem(id)
     tmem_data_store.savePickle()
 
-def tmemPlay(args):
+def tmemPlay(id):
     print("playTmem")
-    print(args)
+    print(id)
+    print(tmems[0].pos_start)
+    head.setPosABSSpeed(tmems[id].pos_start[0], tmems[id].pos_start[1], "1D", "2")
+    time.sleep(1)
+    head.setPosABSSpeed(tmems[id].pos_end[0], tmems[id].pos_end[1], "0F", "0")
 
 
 
@@ -70,7 +77,8 @@ tmems = tmem_data_store.tmems
 if userCommand == 'add':
     tmemAdd()
 elif userCommand == 'play':
-    tmemPlay(args)
+    tmem_to_play = int(userCommandArgs.pop())
+    tmemPlay(tmem_to_play)
 
 elif userCommand == 'list':
     tmemList()
