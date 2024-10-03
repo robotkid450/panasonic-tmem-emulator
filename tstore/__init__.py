@@ -1,1 +1,1 @@
-__all__ = ["tmem", "dataStore"]
+__all__ = ["tmem", "dataStore", "memDb"]
