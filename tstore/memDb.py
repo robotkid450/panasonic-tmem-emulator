@@ -4,12 +4,11 @@ class Database:
         self.dbFilePath = dbfilepath
 
     def connectToDb(self):
-        self.db = sqlite3.connect(self.dbFilePath)
+        self.db = sqlite3.connect(self.dbFilePath, check_same_thread=False)
         self.cursor = self.db.cursor()
         res = self.cursor.execute("SELECT name FROM sqlite_master")
         tables = res.fetchone()
         if tables == None:
-            print("no tables. creating base tables.")
             self.createCameraTable()
 
     def createCameraTable(self):
@@ -86,7 +85,6 @@ class Database:
             sql_statment = f"SELECT * FROM preset_{camera_id} WHERE id=(?)"
             res = self.cursor.execute(sql_statment, (preset_id,))
             result = res.fetchall()
-            print(result)
             if len(result) == 0:
                 return False # no preset for camera
             else:
