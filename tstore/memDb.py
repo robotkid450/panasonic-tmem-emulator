@@ -15,7 +15,7 @@ class Database:
         self.cursor.execute("CREATE TABLE cameras( id INTEGER PRIMARY KEY , address TEXT NOT NUll, port INTEGER NOT NUll, model text NOT NULL )")
 
     def createPresetTable(self, cameraid : int):
-        sqlCmd = f"CREATE TABLE preset_{cameraid}(id INTEGER PRIMARY KEY, position_start TEXT NOT NUll, position_end TEXT NOT NUll, zoom_start TEXT NOT NUll, zoom_end TEXT NOT NUll, speed TEXT NOT NUll)"
+        sqlCmd = f"CREATE TABLE preset_{cameraid}(id INTEGER PRIMARY KEY, position_start_x TEXT NOT NUll, position_start_y TEXT NOT NUll, position_end_x TEXT NOT NUll, position_end_y TEXT NOT NUll, zoom_start TEXT NOT NUll, zoom_end TEXT NOT NUll, speed TEXT NOT NUll)"
         self.cursor.execute(sqlCmd)
 
     def deletePresetTable(self, cameraid : int):
@@ -59,16 +59,24 @@ class Database:
         else:
             return True
 
-    def listCameras(self) -> list:
+    def getCameras(self) -> list:
         res = self.cursor.execute("SELECT * FROM cameras")
         results = res.fetchall()
         return results
 
-    def createPreset(self, camera_id : int, position_start : str, position_end : str, zoom_start : str, zoom_end : str, speed : str):
+    def getCamera(self, camera_id : int):
+        res = self.cursor.execute("SELECT * FROM cameras WHERE id=(?)", (camera_id,))
+        results = res.fetchone()
+        if results == None:
+            raise ValueError(f"No camera defined with ID {camera_id}")
+        else:
+            return results
+
+    def createPreset(self, camera_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str):
         if not self.checkCameraExists(camera_id):
             raise ValueError(f"No camera defined for id: {camera_id}")
-        preset_data = (position_start, position_end, zoom_start, zoom_end, speed)
-        sql_statement = f"INSERT INTO preset_{camera_id} (position_start, position_end, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ?)"
+        preset_data = (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
+        sql_statement = f"INSERT INTO preset_{camera_id} (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ? , ? , ?)"
         self.cursor.execute(sql_statement, preset_data)
         self.db.commit()
 
@@ -100,6 +108,15 @@ class Database:
             return results
         else:
             raise ValueError(f"Camera #{camera_id} does not exist.")
+
+    def getPreset(self, camera_id : int, preset_id : int):
+        if self.checkPresetExists(camera_id, preset_id):
+            sql_statment = f"SELECT * FROM preset_{camera_id} where id={preset_id}"
+            res = self.cursor.execute(sql_statment)
+            results = res.fetchone()
+            return results
+        else:
+            raise ValueError(f"Preset: {preset_id} does not exist for camera: {camera_id}.")
 
 
 if  __name__ == "__main__":

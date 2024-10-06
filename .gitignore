@@ -116,3 +116,4 @@ dmypy.json
 
 *.pickle
 .vscode/
+emulator.db3
