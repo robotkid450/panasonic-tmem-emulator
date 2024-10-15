@@ -72,13 +72,21 @@ class Database:
         else:
             return results
 
-    def createPreset(self, camera_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str):
+    def createPreset(self, camera_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str, preset_id : int = None):
         if not self.checkCameraExists(camera_id):
             raise ValueError(f"No camera defined for id: {camera_id}")
-        preset_data = (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
-        sql_statement = f"INSERT INTO preset_{camera_id} (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ? , ? , ?)"
+        
+        if preset_id == None:
+            preset_data = (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
+            sql_statement = f"INSERT INTO preset_{camera_id} (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ? , ? , ?)"
+        elif preset_id != None:
+            preset_data = (preset_id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
+            sql_statement = sql_statement = f"INSERT INTO preset_{camera_id} (id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ? , ? , ? , ?)"
         self.cursor.execute(sql_statement, preset_data)
         self.db.commit()
+
+    def updatePreset(self, camera_id : int,  preset_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str):
+        pass
 
     def deletePreset(self, camera_id : int, preset_id : int):
         if self.checkPresetExists(camera_id, preset_id):
