@@ -132,7 +132,7 @@ async def callPreset(camera_id : int, preset_id : int):
     head.setPosABSSpeed(pos_start_x, pos_start_y, speeds["0"][0], speeds["0"][1])
     await asyncio.sleep(0.2)
     head.setZoomABS(zoom_start)
-    await asyncio.sleep(1)
+    await asyncio.sleep(1.5)
     head.setPosABSSpeed(pos_end_x, pos_end_y, speeds[speed][0], speeds[speed][1])
 
 
