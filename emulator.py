@@ -121,39 +121,45 @@ def getPreset(camera_id : int, preset_id : int):
 
 @app.get("/api/preset/call")
 async def callPreset(camera_id : int, preset_id : int):
-    #camData = getCameraData(camera_id)
     id, addess, port, model = getCameraData(camera_id)
-    #head = ip.camera(camData[1])
     head = ip.camera(addess)
     try:
         id, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, speed = localGetPreset(camera_id, preset_id)
     except:
         return {"ERROR": "Preset or camera does not exist"}
+    head.moveStop()
+    await asyncio.sleep(0.2)
     head.setPosABSSpeed(pos_start_x, pos_start_y, speeds["0"][0], speeds["0"][1])
+    await asyncio.sleep(0.2)
+    head.setZoomABS(zoom_start)
     await asyncio.sleep(1)
     head.setPosABSSpeed(pos_end_x, pos_end_y, speeds[speed][0], speeds[speed][1])
 
 
 @app.get("/api/preset/rec/start")
-def recStart(camera_id : int):
+async def recStart(camera_id : int):
     head = getCamHead(camera_id)
     startPos = head.queryPosition()
+    await asyncio.sleep(0.2)
+    startZoom = head.queryZoom()
     global presetTempStorage 
-    presetTempStorage = (startPos, None)
+    presetTempStorage = (startPos, startZoom)
     return {"position": startPos}
 
 
 @app.get("/api/preset/rec/end")
-def recEnd(camera_id : int, speed : str, preset_id :int = None ):
+async def recEnd(camera_id : int, speed : str, preset_id :int = None ):
     head = getCamHead(camera_id)
     endPos = head.queryPosition()
+    await asyncio.sleep(0.2)
+    endZoom = head.queryZoom()
     if preset_id == None:
-        db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], 0, 0, speed )
+        db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed )
     else:
         if db.checkPresetExists(camera_id, preset_id):
-            db.updatePreset(camera_id, preset_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], 0, 0, speed)
+            db.updatePreset(camera_id, preset_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed)
         else:
-            db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], 0, 0, speed, preset_id)
+            db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed, preset_id)
     return {"SUCCESS" : "Preset recorded"}
 
 
