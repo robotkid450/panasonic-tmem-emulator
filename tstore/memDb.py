@@ -86,7 +86,17 @@ class Database:
         self.db.commit()
 
     def updatePreset(self, camera_id : int,  preset_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str):
-        pass
+        if self.checkCameraExists(camera_id):
+            if self.checkPresetExists(camera_id, preset_id):
+                sql_statment = f" UPDATE preset_{camera_id} SET position_start_x = \'{position_start_x}\', position_start_y = \'{position_start_y}\', position_end_x = \'{position_end_x}\', position_end_y = \'{position_end_y}\', zoom_start = \'{zoom_start}\', zoom_end = \'{zoom_end}\', speed = \'{speed}\' WHERE id = \'{preset_id}\'"
+                self.cursor.execute(sql_statment, )
+            else:
+                sql_statment = f"INSERT INTO preset_{camera_id} (position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed) VALUES ( ? , ? , ? , ? , ? , ? , ?)"
+            
+            self.db.commit()
+        else:
+            raise ValueError(f"ERROR: No camera defined for id: {camera_id}")
+        
 
     def deletePreset(self, camera_id : int, preset_id : int):
         if self.checkPresetExists(camera_id, preset_id):
