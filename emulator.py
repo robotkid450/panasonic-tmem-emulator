@@ -1,23 +1,12 @@
 from fastapi import FastAPI
 
 from panasonicAW import ip
-# from tstore import tmem
-from tstore import dataStore
 from tstore import memDb
-import time
 import asyncio
 
 dataBaseFile = "emulator.db3"
-
-TmemStore = "tmems.pickle"
-
-headAddr = "192.168.1.150"
-
-# head = ip.camera(headAddr)
-
-# tmem_data_store = dataStore.dataStore(TmemStore)
-# tmem_data_store.loadPickle()
-# tmems = tmem_data_store.tmems
+apiHost = "127.0.0.1"
+apiPort = 8005
 
 speeds = {
     "0" : ("1D", "2"),
@@ -177,4 +166,4 @@ async def recEnd(camera_id : int, speed : str, preset_id :int = None ):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8005)
+    uvicorn.run(app, host=apiHost, port=apiPort)
