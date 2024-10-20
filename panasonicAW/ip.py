@@ -30,8 +30,8 @@ class camera:
             pass
         else:
             if time_dif < 130 :
-                print("ERROR: Command sent to fast. Please wait at least 130ms between commands.")
-                return -2
+                # print("ERROR: Command sent to fast. Please wait at least 130ms between commands.")
+                raise TimeoutError("ERROR: Command sent to fast. Please wait at least 130ms between commands.")
         #if enough time has elapsed then parse and send command
         #parse command
         command_to_send = 'http://' + self.address + '/cgi-bin/aw_ptz?cmd=' + command +"&res=1"
@@ -86,13 +86,11 @@ class camera:
         elif resp.text == 'p0':
             return 0
         else:
-            print("ERROR: Error retriving power status.")
-            return -1
+            raise("ERROR: Error retriving power status.")
     
     def setPower(self, state):
         if state not in self.__power_states:
-            print("ERROR: Invalid state requested")
-            return -1
+            raise ValueError("ERROR: Invalid state requested")
         else:
             resp = self.__sendCommand(self.__command_prefix + "O" + str(state))
 
