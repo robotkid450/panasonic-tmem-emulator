@@ -115,6 +115,9 @@ class camera:
     def setPanTileSpeed(self, pan_speed, tilt_speed):
         resp = self.__sendCommand(self.__command_prefix + "PTS" + str(pan_speed) + str(tilt_speed))
         return resp
+    
+    def setZoomABS(self, zoom):
+        resp = self.__sendCommand(self.__command_prefix + "AXZ" + str(zoom).upper())
 
     def moveStop(self):
         return self.setPanTileSpeed('50', '50')
@@ -150,8 +153,6 @@ class camera:
 
     def queryPosition(self):
         resp = self.__sendCommand(self.__command_prefix + "APC")
-        print(resp)
-        print(resp.text)
         RAW_pan = resp.text[3:-4]
         RAW_tilt = resp.text[7:]
         pan = self.__intToHex(RAW_pan)
@@ -161,6 +162,9 @@ class camera:
 
         return pos
 
+    def queryZoom(self):
+        resp = self.__sendCommand(self.__command_prefix + "GZ")
+        return resp.text[2:]
 
     def testith(self, value):
         a = self.__intToHex(value)
