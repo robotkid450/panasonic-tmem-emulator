@@ -28,7 +28,6 @@ presetTempStorage = None
 
 def getCameraData(camera_id):
     camera = db.getCamera(camera_id)
-    # print(camera)
     return camera
 
 def localGetPreset(camera_id : int, preset_id : int):
@@ -123,6 +122,8 @@ async def callPreset(camera_id : int, preset_id : int):
     head.setZoomABS(zoom_start)
     await asyncio.sleep(1.5)
     head.setPosABSSpeed(pos_end_x, pos_end_y, speeds[speed][0], speeds[speed][1])
+    
+    return {"SUCCESS" : f"Calling preset {preset_id} for camera {camera_id}"}
 
 
 @app.get("/api/preset/rec/start")
@@ -150,18 +151,6 @@ async def recEnd(camera_id : int, speed : str, preset_id :int = None ):
         else:
             db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed, preset_id)
     return {"SUCCESS" : "Preset recorded"}
-
-
-    
-
-
-# @app.get("/api/callPreset")
-# def callPreset(camera : int, preset : int):
-    # id = preset
-    # head.setPosABSSpeed(tmems[id].pos_start[0], tmems[id].pos_start[1], "1D", "2")
-    # time.sleep(1)
-    # head.setPosABSSpeed(tmems[id].pos_end[0], tmems[id].pos_end[1], "0F", "0")
-    # return {f"message: preset {id}"}
 
 
 if __name__ == "__main__":
