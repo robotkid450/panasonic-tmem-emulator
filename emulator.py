@@ -5,20 +5,8 @@ from tstore import memDb
 import asyncio
 
 dataBaseFile = "emulator.db3"
-apiHost = "127.0.0.1"
+apiHost = "0.0.0.0"
 apiPort = 8005
-
-speeds = {
-    "0" : ("1D", "2"),
-    "1" : ("05", "0"),
-    "2" : ("0A", "0"),
-    "3" : ("0F", "0"),
-    "4" : ("05", "1"),
-    "5" : ("0A", "1"),
-    "6" : ("0F", "1"),
-
- }
-
 
 db = memDb.Database(dataBaseFile)
 db.connectToDb()
@@ -104,7 +92,10 @@ def deletePreset(camera_id : int, preset_id : int):
 
 @app.get("/api/preset/get")
 def getPreset(camera_id : int, preset_id : int):
-    preset = db.getPreset(camera_id, preset_id)
+    try:
+        preset = db.getPreset(camera_id, preset_id)
+    except ValueError as valError:
+        return {"Error": valError}
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
