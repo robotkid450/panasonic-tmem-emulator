@@ -3,12 +3,21 @@ import time
 
 class camera:
     def __init__(self, address):
+        self.speedTable = self.__genSpeedTable()
         self.address = address
         self.time_of_last_command = 0
         self.__command_prefix = '%23'
 
         self.__power_states = [ 0, 1, 'f', 'n']
         self.rangelimitHex = {"pan":(0x2D09, 0xD2f5), "tilt": (0x5555, 0x8E38) }
+
+    def __genSpeedTable(self):
+        speedTable = {}
+        for x in range(30):
+            speedTable[x] = (str(hex(x))[2:].zfill(2), "0")
+        for x in range(30):
+            speedTable[x+30] = (str(hex(x))[2:].zfill(2), "2")
+        return speedTable
 
     def __timeMillis(self):
         milliseconds = int(round(time.time() * 1000))
@@ -98,8 +107,8 @@ class camera:
         resp = self.__sendCommand(self.__command_prefix + "APC" + str(x).upper() + str(y).upper())
         return resp
     
-    def setPosABSSpeed(self, x, y, speed, speedTable):
-        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x).upper() + str(y).upper() + str(speed).upper() + str(speedTable).upper())
+    def setPosABSSpeed(self, x, y, speed):
+        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x).upper() + str(y).upper() + str(self.speedTable[speed][0]).upper() + str(self.speedTable[speed][1]).upper())
         return resp
 
     def setPanSpeed(self, speed):

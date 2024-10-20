@@ -117,11 +117,11 @@ async def callPreset(camera_id : int, preset_id : int):
         return {"ERROR": "Preset or camera does not exist"}
     head.moveStop()
     await asyncio.sleep(0.2)
-    head.setPosABSSpeed(pos_start_x, pos_start_y, speeds["0"][0], speeds["0"][1])
+    head.setPosABSSpeed(pos_start_x, pos_start_y, "59")
     await asyncio.sleep(0.2)
     head.setZoomABS(zoom_start)
     await asyncio.sleep(1.5)
-    head.setPosABSSpeed(pos_end_x, pos_end_y, speeds[speed][0], speeds[speed][1])
+    head.setPosABSSpeed(pos_end_x, pos_end_y, speed)
     
     return {"SUCCESS" : f"Calling preset {preset_id} for camera {camera_id}"}
 
