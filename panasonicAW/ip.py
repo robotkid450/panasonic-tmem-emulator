@@ -44,7 +44,7 @@ class camera:
         #if enough time has elapsed then parse and send command
         #parse command
         command_to_send = 'http://' + self.address + '/cgi-bin/aw_ptz?cmd=' + command +"&res=1"
-        print(command_to_send)
+        # print(command_to_send)
         #send command to camera
         response = requests.get(command_to_send)
         #update timestamp for last command

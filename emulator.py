@@ -99,17 +99,21 @@ def getPreset(camera_id : int, preset_id : int):
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
-async def callPreset(camera_id : int, preset_id : int):
+async def callPreset(camera_id : int, preset_id : int, speed = -1):
     id, addess, port, model = getCameraData(camera_id)
     head = ip.camera(addess)
     try:
-        id, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, speed = localGetPreset(camera_id, preset_id)
+        id, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = localGetPreset(camera_id, preset_id)
     except:
         # return {"ERROR": "Preset or camera does not exist"}
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"ERROR": "Preset or camera does not exist"}
         )
+    speed = int(speed)
+    if speed == -1:
+        speed = preset_speed
+
     head.moveStop()
     await asyncio.sleep(0.2)
     head.setPosABSSpeed(pos_start_x, pos_start_y, 59)
