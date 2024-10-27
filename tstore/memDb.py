@@ -15,7 +15,7 @@ class Database:
         self.cursor.execute("CREATE TABLE cameras( id INTEGER PRIMARY KEY , address TEXT NOT NUll, port INTEGER NOT NUll, model text NOT NULL )")
 
     def createPresetTable(self, cameraid : int):
-        sqlCmd = f"CREATE TABLE preset_{cameraid}(id INTEGER PRIMARY KEY, position_start_x TEXT NOT NUll, position_start_y TEXT NOT NUll, position_end_x TEXT NOT NUll, position_end_y TEXT NOT NUll, zoom_start TEXT NOT NUll, zoom_end TEXT NOT NUll, speed TEXT NOT NUll)"
+        sqlCmd = f"CREATE TABLE preset_{cameraid}(id INTEGER PRIMARY KEY, position_start_x TEXT NOT NUll, position_start_y TEXT NOT NUll, position_end_x TEXT NOT NUll, position_end_y TEXT NOT NUll, zoom_start TEXT NOT NUll, zoom_end TEXT NOT NUll, speed INT NOT NUll)"
         self.cursor.execute(sqlCmd)
 
     def deletePresetTable(self, cameraid : int):
