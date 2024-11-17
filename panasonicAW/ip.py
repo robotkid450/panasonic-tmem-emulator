@@ -1,9 +1,10 @@
 import requests
 import time
 
+__version__ = "1.0.1"
+
 class camera:
     def __init__(self, address):
-        self.version = "1.0.1"
         self.speedTable = self.__genSpeedTable()
         self.address = address
         self.time_of_last_command = 0

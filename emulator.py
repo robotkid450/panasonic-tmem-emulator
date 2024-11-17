@@ -4,7 +4,7 @@ from panasonicAW import ip
 from tstore import memDb
 import asyncio
 
-Version = "1.0.1"
+__version__ = "1.0.1"
 
 dataBaseFile = "emulator.db3"
 apiHost = "0.0.0.0"

@@ -1,7 +1,9 @@
 import sqlite3
+
+__version__ = "1.0.1"
+
 class Database:
     def __init__(self, dbfilepath : str) -> None:
-        self.version = "1.0.1"
         self.dbFilePath = dbfilepath
 
     def connectToDb(self):
