@@ -3,6 +3,8 @@ import sqlite3
 __version__ = "1.0.1"
 
 class Database:
+
+
     def __init__(self, dbfilepath : str) -> None:
         self.dbFilePath = dbfilepath
 
@@ -33,8 +35,7 @@ class Database:
             for item in results:
                 camaddress = item[1]
                 raise ValueError(f"Address {camaddress} already in use.")
-            
-        
+
         camData = (address, port, model)
         self.cursor.execute("INSERT INTO cameras(address, port, model) VALUES(?, ?, ?)", camData)
         self.db.commit()
