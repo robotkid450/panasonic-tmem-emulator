@@ -37,7 +37,7 @@ def test_func():
     return {"message": "test"}
 
 @app.get("/api/camera/add")
-def add_camera(model : str, address: str, port = 80):
+def camera_add(model : str, address: str, port = 80):
     try:
         db.addCamera(model, address, port)
     except ValueError:
@@ -45,7 +45,7 @@ def add_camera(model : str, address: str, port = 80):
     return {"SUCCESS": f"Camera at {address} added"}
 
 @app.get("/api/camera/delete")
-def delete_camera(camera_id : int):
+def camera_delete(camera_id : int):
     try:
         db.deleteCamera(camera_id)
     except ValueError:
@@ -54,12 +54,12 @@ def delete_camera(camera_id : int):
     return {"SUCCESS": f"Camera {camera_id} deleted."}
 
 @app.get("/api/camera/list")
-def list_cameras():
+def cameras_list():
     cams = db.getCameras()
     return {"CAMERAS" : cams}
 
 @app.get("/api/camera/get")
-def get_camera(camera_id : int):
+def camera_get(camera_id : int):
     if db.checkCameraExists(camera_id):
         cam = get_camera_data(camera_id)
         return {"camera" : cam}
@@ -68,7 +68,7 @@ def get_camera(camera_id : int):
 
 
 @app.get("/api/preset/add")
-def add_preset(camera_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
+def preset_add(camera_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
     try:
         db.createPreset(camera_id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
     except ValueError:
@@ -77,7 +77,7 @@ def add_preset(camera_id : int, position_start_x: str, position_start_y: str, po
 
 
 @app.get("/api/preset/update")
-def update_preset(camera_id : int, preset_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
+def preset_update(camera_id : int, preset_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
     try:
         db.updatePreset(camera_id, preset_id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
     except:
@@ -85,7 +85,7 @@ def update_preset(camera_id : int, preset_id : int, position_start_x: str, posit
     return {"SUCCESS" : f"Preset ({preset_id}) for camera ({camera_id}) has been updated."}
 
 @app.get("/api/preset/delete")
-def delete_preset(camera_id : int, preset_id : int):
+def preset_delete(camera_id : int, preset_id : int):
     try:
         db.deletePreset(camera_id, preset_id)
     except ValueError:
@@ -93,7 +93,7 @@ def delete_preset(camera_id : int, preset_id : int):
     return {"SUCCESS" : f"Preset deleted from {camera_id}"}
 
 @app.get("/api/preset/get")
-def get_preset(camera_id : int, preset_id : int):
+def preset_get(camera_id : int, preset_id : int):
     try:
         preset = db.getPreset(camera_id, preset_id)
     except ValueError as valError:
@@ -101,7 +101,7 @@ def get_preset(camera_id : int, preset_id : int):
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
-async def call_preset(camera_id : int, preset_id : int, speed = -1):
+async def preset_call(camera_id : int, preset_id : int, speed = -1):
     preset_id_from_db, address, port, model = get_camera_data(camera_id)
     head = ip.Camera(address)
     try:
