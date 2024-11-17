@@ -11,7 +11,7 @@ __version__ = "1.1s.1"
 
 dataBaseFile = "emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
-apiPort = int(os.environ.get("API_PORT", 8004))
+apiPort = int(os.environ.get("API_PORT", 8005))
 
 
 db = memDb.Database(dataBaseFile)
@@ -24,7 +24,7 @@ def get_camera_data(camera_id):
     camera = db.camera_get(camera_id)
     return camera
 
-def local_get_reset(camera_id : int, preset_id : int):
+def local_get_preset(camera_id : int, preset_id : int):
     preset = db.preset_get(camera_id, preset_id)
     return preset
 
@@ -109,7 +109,7 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     preset_id_from_db, address, port, model = get_camera_data(camera_id)
     head = ip.Camera(address)
     try:
-        preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = local_get_reset(camera_id, preset_id)
+        preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = local_get_preset(camera_id, preset_id)
     except:
         # return {"ERROR": "Preset or camera does not exist"}
         raise HTTPException(
