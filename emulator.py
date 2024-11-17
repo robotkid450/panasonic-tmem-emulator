@@ -1,14 +1,18 @@
+import asyncio
+import os
+
 from fastapi import FastAPI, status, HTTPException
 
 from panasonicAW import ip
 from tstore import memDb
-import asyncio
+
 
 __version__ = "1.0.1"
 
 dataBaseFile = "emulator.db3"
-apiHost = "0.0.0.0"
-apiPort = 8004
+apiHost = os.environ.get("API_HOST", "127.0.0.1")
+apiPort = int(os.environ.get("API_PORT", 8004))
+
 
 db = memDb.Database(dataBaseFile)
 db.connect_to_db()
@@ -156,4 +160,6 @@ async def rec_end(camera_id : int, speed : str, preset_id :int = None ):
 
 if __name__ == "__main__":
     import uvicorn
+    print(apiHost)
+    print(apiPort)
     uvicorn.run(app, host=apiHost, port=apiPort)
