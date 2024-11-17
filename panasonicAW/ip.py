@@ -7,37 +7,38 @@ class Camera:
 
 
     def __init__(self, address):
-        self.speedTable = self.__genSpeedTable()
+        self.speed_table = self.__gen_speed_table()
         self.address = address
         self.time_of_last_command = 0
         self.__command_prefix = '%23'
 
         self.__power_states = [ 0, 1, 'f', 'n']
-        self.rangelimitHex = {"pan":(0x2D09, 0xD2f5), "tilt": (0x5555, 0x8E38) }
+        self.range_limit_hex = {"pan":(0x2D09, 0xD2f5), "tilt": (0x5555, 0x8E38) }
 
-    def __genSpeedTable(self):
-        speedTable = {}
+    @staticmethod
+    def __gen_speed_table():
+        speed_able = {}
         for x in range(30):
-            speedTable[x] = (str(hex(x))[2:].zfill(2), "0")
+            speed_able[x] = (str(hex(x))[2:].zfill(2), "0")
         for x in range(30):
-            speedTable[x+30] = (str(hex(x))[2:].zfill(2), "2")
-        return speedTable
-
-    def __timeMillis(self):
+            speed_able[x+30] = (str(hex(x))[2:].zfill(2), "2")
+        return speed_able
+    @staticmethod
+    def __time_millis():
         milliseconds = int(round(time.time() * 1000))
         return milliseconds
 
-
-    def __handleCamError(self, responce):
+    @NotImplementedError
+    def __handle_cam_error(self, response):
         print("ERROR: Camera head reported an error.")
-        print(responce.text)
+        print(response.text)
         return 1
 
-    def __sendCommand(self, command):
+    def __send_command(self, command):
         #sends command to camera
 
         #fist check if command is being set to close to another
-        current_time = self.__timeMillis()
+        current_time = self.__time_millis()
         time_dif = current_time - self.time_of_last_command
         if self.time_of_last_command == 0:
             pass
@@ -55,7 +56,8 @@ class Camera:
         self.time_of_last_command = current_time
         return response
 
-    def __intToHex(self, value, pad=4):
+    @staticmethod
+    def __int_to_hex(value, pad=4):
         if type(value) == str:
             value = int(value, 16)
 
@@ -66,94 +68,96 @@ class Camera:
         value_pad = value[2:].zfill(4)
         return value_pad
 
-    def __hexToInt(self, value): #converts hexvalut
+    @staticmethod
+    def __hex_to_int(value): #converts hex to int
         if type(value) != int:
-            vaule = int(value, 16)
+            value = int(value, 16)
         
         return value
 
-    #def __rangeChceckHex(self, value):
+    #def __range_check_hex(self, value):
         #if 
 
-    def __presetCheckPadding(self, preset):
+    @staticmethod
+    def __preset_check_padding( preset):
         preset = str(preset)
         if len(preset) == 1:
             preset = "0" + preset
         
         return preset
 
-    def sendRaw(self, command):
-        err = self.__sendCommand(command)
+    def send_raw(self, command):
+        err = self.__send_command(command)
         if err != 0:
             print(err)
 
 
-    def setPower(self, state):
+    def power_set(self, state):
         if state not in self.__power_states:
             raise ValueError("ERROR: Invalid state requested")
         else:
-            resp = self.__sendCommand(self.__command_prefix + "O" + str(state))
+            resp = self.__send_command(self.__command_prefix + "O" + str(state))
 
-    def setPosABS(self, x, y):
-        resp = self.__sendCommand(self.__command_prefix + "APC" + str(x).upper() + str(y).upper())
+    def position_set_absolute(self, x, y):
+        resp = self.__send_command(self.__command_prefix + "APC" + str(x).upper() + str(y).upper())
         return resp
     
-    def setPosABSSpeed(self, x, y, speed):
-        resp = self.__sendCommand(self.__command_prefix + "APS" + str(x).upper() + str(y).upper() + str(self.speedTable[speed][0]).upper() + str(self.speedTable[speed][1]).upper())
+    def position_set_absolute_with_speed(self, x, y, speed):
+        resp = self.__send_command(self.__command_prefix + "APS" + str(x).upper() + str(y).upper() + str(self.speed_table[speed][0]).upper() + str(self.speed_table[speed][1]).upper())
         return resp
 
-    def setPanSpeed(self, speed):
-        resp = self.__sendCommand(self.__command_prefix + "P" + str(speed))
-        return resp
-    
-    def setTiltSpeed(self, speed):
-        resp = self.__sendCommand(self.__command_prefix + "T" + str(speed))
+    def pan_set_speed(self, speed):
+        resp = self.__send_command(self.__command_prefix + "P" + str(speed))
         return resp
     
-    def setPanTileSpeed(self, pan_speed, tilt_speed):
-        resp = self.__sendCommand(self.__command_prefix + "PTS" + str(pan_speed) + str(tilt_speed))
+    def tilt_set_speed(self, speed):
+        resp = self.__send_command(self.__command_prefix + "T" + str(speed))
         return resp
     
-    def setZoomABS(self, zoom):
-        resp = self.__sendCommand(self.__command_prefix + "AXZ" + str(zoom).upper())
-
-
-    def moveStop(self):
-        return self.setPanTileSpeed('50', '50')
-
-
-    def presetPlay(self, preset):
-        preset = self.__presetCheckPadding(preset)
-        resp = self.__sendCommand(self.__command_prefix + "R" + str(preset))
+    def pan_tilt_set_speed(self, pan_speed, tilt_speed):
+        resp = self.__send_command(self.__command_prefix + "PTS" + str(pan_speed) + str(tilt_speed))
         return resp
     
-    def presetRegister(self, preset):
-        preset = self.__presetCheckPadding(preset)
-        resp = self.__sendCommand(self.__command_prefix + "M" + str(preset))
+    def zoom_set_absolute (self, zoom):
+        resp = self.__send_command(self.__command_prefix + "AXZ" + str(zoom).upper())
+
+
+    def pan_tilt_stop(self):
+        return self.pan_tilt_set_speed('50', '50')
+
+
+    def preset_play(self, preset):
+        preset = self.__preset_check_padding(preset)
+        resp = self.__send_command(self.__command_prefix + "R" + str(preset))
+        return resp
+    
+    def preset_register(self, preset):
+        preset = self.__preset_check_padding(preset)
+        resp = self.__send_command(self.__command_prefix + "M" + str(preset))
         return resp
 
-    def presetDelete(self, preset):
-        preset = self.__presetCheckPadding(preset)
-        resp = self.__sendCommand(self.__command_prefix + "C" + str(preset))
+    def preset_delete(self, preset):
+        preset = self.__preset_check_padding(preset)
+        resp = self.__send_command(self.__command_prefix + "C" + str(preset))
         return resp
 
-    def presetQuery(self):
-        resp = self.__sendCommand(self.__command_prefix + "S")
+    def preset_query(self):
+        resp = self.__send_command(self.__command_prefix + "S")
         preset = int(resp.text[1:]) #strip data prefix and convert from string to int
         return preset
 
-    def presetSpeedSet(self, speed):
-        resp = self.__sendCommand(self.__command_prefix + "UPVS" + str(speed))
+    def preset_speed_set(self, speed):
+        resp = self.__send_command(self.__command_prefix + "UPVS" + str(speed))
         return resp
 
-    def presetSpeedquery(self):
-        resp = self.__sendCommand(self.__command_prefix + "UPVS")
+    def preset_speed_query(self):
+        resp = self.__send_command(self.__command_prefix + "UPVS")
         speed = int(resp.text[4:]) #strip data prefix and convert from string to int
         return speed
 
 
-    def queryPower(self):
-        resp = self.__sendCommand(self.__command_prefix + "O")
+    def power_query(self):
+        resp = self.__send_command(self.__command_prefix + "O")
         print(resp)
         if resp.text == 'p1':
             return 1
@@ -162,24 +166,24 @@ class Camera:
         elif resp.text == 'p0':
             return 0
         else:
-            raise("ERROR: Error retriving power status.")
+            raise "ERROR: Error retrieving power status."
 
-    def queryPosition(self):
-        resp = self.__sendCommand(self.__command_prefix + "APC")
-        RAW_pan = resp.text[3:-4]
-        RAW_tilt = resp.text[7:]
-        pan = self.__intToHex(RAW_pan)
-        tilt = self.__intToHex(RAW_tilt)
+    def position_query(self):
+        resp = self.__send_command(self.__command_prefix + "APC")
+        raw_pan = resp.text[3:-4]
+        raw_tilt = resp.text[7:]
+        pan = self.__int_to_hex(raw_pan)
+        tilt = self.__int_to_hex(raw_tilt)
         pos = (pan, tilt)
         return pos
 
-    def queryZoom(self):
-        resp = self.__sendCommand(self.__command_prefix + "GZ")
+    def zoom_query(self):
+        resp = self.__send_command(self.__command_prefix + "GZ")
         return resp.text[2:]
 
 
-    def testith(self, value):
-        a = self.__intToHex(value)
+    def test_int_to_hex(self, value):
+        a = self.__int_to_hex(value)
         print(a)
 
 
@@ -190,5 +194,5 @@ if __name__ == '__main__':
     c = Camera(cam_address)
     #print(c.setPosABS(8000, 8000))
     #time.sleep(0.14)
-    c.queryPosition()
+    c.position_query()
     time.sleep(0.14)

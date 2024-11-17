@@ -116,13 +116,13 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     if speed == -1:
         speed = preset_speed
 
-    head.moveStop()
+    head.pan_tilt_stop()
     await asyncio.sleep(0.2)
-    head.setPosABSSpeed(pos_start_x, pos_start_y, 59)
+    head.position_set_absolute_with_speed(pos_start_x, pos_start_y, 59)
     await asyncio.sleep(0.2)
-    head.setZoomABS(zoom_start)
+    head.zoom_set_absolute(zoom_start)
     await asyncio.sleep(1.5)
-    head.setPosABSSpeed(pos_end_x, pos_end_y, speed)
+    head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
     
     return {"SUCCESS" : f"Calling preset {preset_id} for camera {camera_id}"}
 
@@ -130,9 +130,9 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
 @app.get("/api/preset/rec/start")
 async def rec_start(camera_id : int):
     head = get_ham_head(camera_id)
-    start_pos = head.queryPosition()
+    start_pos = head.position_query()
     await asyncio.sleep(0.2)
-    start_zoom = head.queryZoom()
+    start_zoom = head.zoom_query()
     global presetTempStorage 
     presetTempStorage = (start_pos, start_zoom)
     return {"position": start_pos}
@@ -141,9 +141,9 @@ async def rec_start(camera_id : int):
 @app.get("/api/preset/rec/end")
 async def rec_end(camera_id : int, speed : str, preset_id :int = None ):
     head = get_ham_head(camera_id)
-    end_pos = head.queryPosition()
+    end_pos = head.position_query()
     await asyncio.sleep(0.2)
-    end_zoom = head.queryZoom()
+    end_zoom = head.zoom_query()
     if preset_id is None:
         db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], end_pos[0], end_pos[1], presetTempStorage[1], end_zoom, speed )
     else:
