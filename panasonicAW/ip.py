@@ -3,7 +3,9 @@ import time
 
 __version__ = "1.0.1"
 
-class camera:
+class Camera:
+
+
     def __init__(self, address):
         self.speedTable = self.__genSpeedTable()
         self.address = address
@@ -54,7 +56,6 @@ class camera:
         return response
 
     def __intToHex(self, value, pad=4):
-
         if type(value) == str:
             value = int(value, 16)
 
@@ -66,7 +67,7 @@ class camera:
         return value_pad
 
     def __hexToInt(self, value): #converts hexvalut
-        if type(vaule) != int:
+        if type(value) != int:
             vaule = int(value, 16)
         
         return value
@@ -80,25 +81,13 @@ class camera:
             preset = "0" + preset
         
         return preset
-        
 
     def sendRaw(self, command):
         err = self.__sendCommand(command)
         if err != 0:
             print(err)
 
-    def queryPower(self):
-        resp = self.__sendCommand(self.__command_prefix + "O")
-        print(resp)
-        if resp.text == 'p1':
-            return 1
-        elif resp.text == 'p3':
-            return 3
-        elif resp.text == 'p0':
-            return 0
-        else:
-            raise("ERROR: Error retriving power status.")
-    
+
     def setPower(self, state):
         if state not in self.__power_states:
             raise ValueError("ERROR: Invalid state requested")
@@ -128,8 +117,10 @@ class camera:
     def setZoomABS(self, zoom):
         resp = self.__sendCommand(self.__command_prefix + "AXZ" + str(zoom).upper())
 
+
     def moveStop(self):
         return self.setPanTileSpeed('50', '50')
+
 
     def presetPlay(self, preset):
         preset = self.__presetCheckPadding(preset)
@@ -160,35 +151,43 @@ class camera:
         speed = int(resp.text[4:]) #strip data prefix and convert from string to int
         return speed
 
+
+    def queryPower(self):
+        resp = self.__sendCommand(self.__command_prefix + "O")
+        print(resp)
+        if resp.text == 'p1':
+            return 1
+        elif resp.text == 'p3':
+            return 3
+        elif resp.text == 'p0':
+            return 0
+        else:
+            raise("ERROR: Error retriving power status.")
+
     def queryPosition(self):
         resp = self.__sendCommand(self.__command_prefix + "APC")
         RAW_pan = resp.text[3:-4]
         RAW_tilt = resp.text[7:]
         pan = self.__intToHex(RAW_pan)
         tilt = self.__intToHex(RAW_tilt)
-
         pos = (pan, tilt)
-
         return pos
 
     def queryZoom(self):
         resp = self.__sendCommand(self.__command_prefix + "GZ")
         return resp.text[2:]
 
+
     def testith(self, value):
         a = self.__intToHex(value)
         print(a)
-
-        
-        
-
 
 
 if __name__ == '__main__':
 
     cam_address = "192.168.1.150"
 
-    c = camera(cam_address)
+    c = Camera(cam_address)
     #print(c.setPosABS(8000, 8000))
     #time.sleep(0.14)
     c.queryPosition()

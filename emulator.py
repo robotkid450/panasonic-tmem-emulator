@@ -8,7 +8,7 @@ __version__ = "1.0.1"
 
 dataBaseFile = "emulator.db3"
 apiHost = "0.0.0.0"
-apiPort = 8005
+apiPort = 8004
 
 db = memDb.Database(dataBaseFile)
 db.connectToDb()
@@ -16,28 +16,28 @@ db.connectToDb()
 presetTempStorage = None
 
 
-def getCameraData(camera_id):
+def get_camera_data(camera_id):
     camera = db.getCamera(camera_id)
     return camera
 
-def localGetPreset(camera_id : int, preset_id : int):
+def local_get_reset(camera_id : int, preset_id : int):
     preset = db.getPreset(camera_id, preset_id)
     return preset
 
-def getCamHead(camera_id : int):
-    camData = getCameraData(camera_id)
-    head = ip.camera(camData[1])
+def get_ham_head(camera_id : int):
+    cam_data = get_camera_data(camera_id)
+    head = ip.Camera(cam_data[1])
     return head
         
 
 app = FastAPI()
 
 @app.get("/api/test")
-def testfunc():
+def test_func():
     return {"message": "test"}
 
 @app.get("/api/camera/add")
-def addCamera(model : str, address: str, port = 80):
+def add_camera(model : str, address: str, port = 80):
     try:
         db.addCamera(model, address, port)
     except ValueError:
@@ -45,30 +45,30 @@ def addCamera(model : str, address: str, port = 80):
     return {"SUCCESS": f"Camera at {address} added"}
 
 @app.get("/api/camera/delete")
-def deleteCamera(id : int):
+def delete_camera(camera_id : int):
     try:
-        db.deleteCamera(id)
+        db.deleteCamera(camera_id)
     except ValueError:
-        return {"ERROR": f"No camera defined for id {id}"}
+        return {"ERROR": f"No camera defined for id {camera_id}"}
     
-    return {"SUCCESS": f"Camera {id} deleted."}
+    return {"SUCCESS": f"Camera {camera_id} deleted."}
 
 @app.get("/api/camera/list")
-def listCameras():
+def list_cameras():
     cams = db.getCameras()
     return {"CAMERAS" : cams}
 
 @app.get("/api/camera/get")
-def getCamera(Camera_id : int):
-    if db.checkCameraExists(Camera_id):
-        cam = getCameraData(Camera_id)
+def get_camera(camera_id : int):
+    if db.checkCameraExists(camera_id):
+        cam = get_camera_data(camera_id)
         return {"camera" : cam}
     else:
         return  {"ERROR" : "No camera defined"}
 
 
 @app.get("/api/preset/add")
-def addPreset(camera_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
+def add_preset(camera_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
     try:
         db.createPreset(camera_id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
     except ValueError:
@@ -77,7 +77,7 @@ def addPreset(camera_id : int, position_start_x: str, position_start_y: str, pos
 
 
 @app.get("/api/preset/update")
-def updatePreset(camera_id : int, preset_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
+def update_preset(camera_id : int, preset_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str, zoom_start : str, zoom_end : str, speed: str):
     try:
         db.updatePreset(camera_id, preset_id, position_start_x, position_start_y, position_end_x, position_end_y, zoom_start, zoom_end, speed)
     except:
@@ -85,7 +85,7 @@ def updatePreset(camera_id : int, preset_id : int, position_start_x: str, positi
     return {"SUCCESS" : f"Preset ({preset_id}) for camera ({camera_id}) has been updated."}
 
 @app.get("/api/preset/delete")
-def deletePreset(camera_id : int, preset_id : int):
+def delete_preset(camera_id : int, preset_id : int):
     try:
         db.deletePreset(camera_id, preset_id)
     except ValueError:
@@ -93,7 +93,7 @@ def deletePreset(camera_id : int, preset_id : int):
     return {"SUCCESS" : f"Preset deleted from {camera_id}"}
 
 @app.get("/api/preset/get")
-def getPreset(camera_id : int, preset_id : int):
+def get_preset(camera_id : int, preset_id : int):
     try:
         preset = db.getPreset(camera_id, preset_id)
     except ValueError as valError:
@@ -101,11 +101,11 @@ def getPreset(camera_id : int, preset_id : int):
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
-async def callPreset(camera_id : int, preset_id : int, speed = -1):
-    id, addess, port, model = getCameraData(camera_id)
-    head = ip.camera(addess)
+async def call_preset(camera_id : int, preset_id : int, speed = -1):
+    preset_id_from_db, address, port, model = get_camera_data(camera_id)
+    head = ip.Camera(address)
     try:
-        id, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = localGetPreset(camera_id, preset_id)
+        preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = local_get_reset(camera_id, preset_id)
     except:
         # return {"ERROR": "Preset or camera does not exist"}
         raise HTTPException(
@@ -128,29 +128,29 @@ async def callPreset(camera_id : int, preset_id : int, speed = -1):
 
 
 @app.get("/api/preset/rec/start")
-async def recStart(camera_id : int):
-    head = getCamHead(camera_id)
-    startPos = head.queryPosition()
+async def rec_start(camera_id : int):
+    head = get_ham_head(camera_id)
+    start_pos = head.queryPosition()
     await asyncio.sleep(0.2)
-    startZoom = head.queryZoom()
+    start_zoom = head.queryZoom()
     global presetTempStorage 
-    presetTempStorage = (startPos, startZoom)
-    return {"position": startPos}
+    presetTempStorage = (start_pos, start_zoom)
+    return {"position": start_pos}
 
 
 @app.get("/api/preset/rec/end")
-async def recEnd(camera_id : int, speed : str, preset_id :int = None ):
-    head = getCamHead(camera_id)
-    endPos = head.queryPosition()
+async def rec_end(camera_id : int, speed : str, preset_id :int = None ):
+    head = get_ham_head(camera_id)
+    end_pos = head.queryPosition()
     await asyncio.sleep(0.2)
-    endZoom = head.queryZoom()
-    if preset_id == None:
-        db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed )
+    end_zoom = head.queryZoom()
+    if preset_id is None:
+        db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], end_pos[0], end_pos[1], presetTempStorage[1], end_zoom, speed )
     else:
         if db.checkPresetExists(camera_id, preset_id):
-            db.updatePreset(camera_id, preset_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed)
+            db.updatePreset(camera_id, preset_id, presetTempStorage[0][0], presetTempStorage[0][1], end_pos[0], end_pos[1], presetTempStorage[1], end_zoom, speed)
         else:
-            db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], endPos[0], endPos[1], presetTempStorage[1], endZoom, speed, preset_id)
+            db.createPreset(camera_id, presetTempStorage[0][0], presetTempStorage[0][1], end_pos[0], end_pos[1], presetTempStorage[1], end_zoom, speed, preset_id)
     return {"SUCCESS" : "Preset recorded"}
 
 
