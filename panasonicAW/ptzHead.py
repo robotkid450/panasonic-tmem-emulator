@@ -206,8 +206,17 @@ class Camera:
         resp = self.__send_command("APC")
         raw_pan = resp.text[3:-4]
         raw_tilt = resp.text[7:]
-        pan = self.int_to_hex(raw_pan)
-        tilt = self.int_to_hex(raw_tilt)
+        pos = (raw_pan.upper(), raw_tilt.upper())
+        return pos
+
+    def position_query(self):
+        resp = self.__send_command("APC")
+        raw_pan = resp.text[3:-4]
+        raw_tilt = resp.text[7:]
+        pan = self.hex_to_int(raw_pan)
+        pan = self.range_conversion(pan, self.pan_min_head, self.pan_max_head, self.pan_min, self.pan_max)
+        tilt = self.hex_to_int(raw_tilt)
+        tilt = self.range_conversion(tilt, self.tilt_min_head, self.tilt_max_head, self.tilt_min, self.tilt_max)
         pos = (pan, tilt)
         return pos
 
@@ -234,6 +243,13 @@ class Camera:
     def zoom_query_hex(self):
         resp = self.__send_command("GZ")
         return resp.text[2:]
+
+    def zoom_query(self):
+        resp = self.__send_command("GZ")
+        zoom = resp.text[2:]
+        zoom = self.hex_to_int(zoom)
+        zoom = self.range_conversion(zoom, self.zoom_min_head, self.zoom_max_head, self.zoom_min, self.zoom_max)
+        return zoom
 
     def preset_play(self, preset : int):
         preset = self.__preset_check_padding(preset)
