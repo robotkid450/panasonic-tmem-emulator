@@ -3,7 +3,7 @@ import os
 
 from fastapi import FastAPI, status, HTTPException
 
-from panasonicAW import ip
+from panasonicAW import ptzHead
 from tstore import memDb
 
 
@@ -50,9 +50,9 @@ def local_get_preset(camera_id : int, preset_id : int):
     preset = db.preset_get(camera_id, preset_id)
     return preset
 
-def get_ham_head(camera_id : int):
+def get_cam_head(camera_id : int):
     cam_data = get_camera_data(camera_id)
-    head = ip.Camera(cam_data[1])
+    head = ptzHead.Camera(cam_data[1])
     return head
         
 
@@ -129,7 +129,7 @@ def preset_get(camera_id : int, preset_id : int):
 @app.get("/api/preset/call")
 async def preset_call(camera_id : int, preset_id : int, speed = -1):
     preset_id_from_db, address, port, model = get_camera_data(camera_id)
-    head = ip.Camera(address)
+    head = ptzHead.Camera(address, model)
     try:
         preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end, preset_speed = local_get_preset(camera_id, preset_id)
     except:
@@ -144,11 +144,11 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
 
     head.pan_tilt_stop()
     await asyncio.sleep(0.2)
-    head.position_set_absolute_with_speed(pos_start_x, pos_start_y, 59)
+    head.position_set_absolute_with_speed_hex(pos_start_x, pos_start_y, 59)
     await asyncio.sleep(0.2)
-    head.zoom_set_absolute(zoom_start)
+    head.zoom_set_absolute_hex(zoom_start)
     await asyncio.sleep(1.5)
-    head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
+    head.position_set_absolute_with_speed_hex(pos_end_x, pos_end_y, speed)
     
     return {"SUCCESS" : f"Calling preset {preset_id} for camera {camera_id}"}
 
@@ -157,20 +157,20 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
 async def rec_start(camera_id : int):
     global presetTempStorage
     presetTempStorage.clear_temp() # Clear out temp storage before starting recording
-    head = get_ham_head(camera_id)
-    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query()
+    head = get_cam_head(camera_id)
+    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query_hex()
     await asyncio.sleep(0.2)
-    presetTempStorage.zoom_start = head.zoom_query()
+    presetTempStorage.zoom_start = head.zoom_query_hex()
 
     return {"position x:y:z": f"{presetTempStorage.position_start_x}:{presetTempStorage.position_start_y}:{presetTempStorage.zoom_start}"}
 
 
 @app.get("/api/preset/rec/end")
 async def rec_end(camera_id : int, speed : str, preset_id :int = None ):
-    head = get_ham_head(camera_id)
-    position_end_x, position_end_y = head.position_query()
+    head = get_cam_head(camera_id)
+    position_end_x, position_end_y = head.position_query_hex()
     await asyncio.sleep(0.2)
-    zoom_end = head.zoom_query()
+    zoom_end = head.zoom_query_hex()
     global presetTempStorage
     presetTempStorage.position_end_x = position_end_x
     presetTempStorage.position_end_y = position_end_y
