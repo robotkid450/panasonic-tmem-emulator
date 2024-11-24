@@ -1,11 +1,14 @@
 import asyncio
 import os
+import logging
 
 from fastapi import FastAPI, status, HTTPException
 
 from panasonicAW import ptzHead
 from tstore import memDb
 
+logger = logging.getLogger(__name__)
+logging.getLogger("panasonicAW.ptzHead")
 
 __version__ = "2.1.1"
 
@@ -217,6 +220,5 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
 
 if __name__ == "__main__":
     import uvicorn
-    print(apiHost)
-    print(apiPort)
+    logging.basicConfig(level=logging.DEBUG)
     uvicorn.run(app, host=apiHost, port=apiPort)
