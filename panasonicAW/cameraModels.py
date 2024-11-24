@@ -4,21 +4,13 @@ CAMERA_MODELS = {
                 "angles" : (-175, 175),
                 "angles_head" : (11529, 54005),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180
             },
             "tilt":{
                 "angles" : (-30, 90),
                 "angles_head" : (21845, 36408),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180
             },
             "zoom": {
                 "position_bounds": (1365, 4057),
@@ -30,25 +22,18 @@ CAMERA_MODELS = {
     "AW-UE100":{
             "pan":{
                 "angles" : (-175, 175),
-                "angles_head" : (0, 0),
+                "angles_head" : (11529, 54005),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180,
             },
             "tilt":{
                 "angles" : (-30, 210),
+                "angles_head" : (36408, 7281),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180
             },
             "zoom": {
-                "position_bounds": (1365, 4057),
+                "position_bounds": (1365, 4095),
                 "speed_bounds" : (1, 99),
             },
             "command_delay": 0.13,
@@ -83,21 +68,13 @@ CAMERA_MODELS = {
                 "angles" : (-175, 175),
                 "angles_head" : (54005, 11529),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180
             },
             "tilt":{
                 "angles" : (-30, 90),
                 "angles_head" : (36408, 21845),
                 "speed_bounds" : (1, 100),
-                "speed_max" : {
-                    "normal" : 60,
-                    "fast1" : 90,
-                    "fast2" : 180,
-                }
+                "speed_max" : 180
             },
             "zoom": {
                 "position_bounds": (1365, 4057),

@@ -228,7 +228,7 @@ class Camera:
         resp = self.__send_command("AXZ" + zoom.upper())
         return resp
 
-    def zoom_set_absolute_hex (self, zoom : int):
+    def zoom_set_absolute_hex (self, zoom : str):
         resp = self.__send_command("AXZ" + str(zoom).upper())
         return resp
 
