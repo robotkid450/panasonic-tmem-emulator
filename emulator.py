@@ -7,7 +7,7 @@ from panasonicAW import ip
 from tstore import memDb
 
 
-__version__ = "1.1s.1"
+__version__ = "1.1.1"
 
 dataBaseFile = "emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
