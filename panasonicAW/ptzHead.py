@@ -144,10 +144,12 @@ class Camera:
         return preset
 
     def send_raw(self, command):
+        logger.debug("Sending command: %s to %s", command, self.address)
         response= self.__send_command(command)
         return response
 
     def power_set(self, state):
+        logger.info("Setting power state: %s to %s", state, self.address)
         if state not in self.__power_states:
             raise ValueError("ERROR: Invalid power state requested")
         else:
