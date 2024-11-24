@@ -1,6 +1,6 @@
 import sqlite3
 
-__version__ = "1.0.1"
+__version__ = "1.2.1"
 
 class Database:
 
@@ -17,12 +17,44 @@ class Database:
         tables = res.fetchone()
         if tables is None:
             self.camera_table_create()
+            self.emulator_data_table_create()
+            self.emulator_data_version_set()
+
+    def emulator_data_table_create(self):
+        self.cursor.execute("CREATE TABLE emulator_data(data_key TEXT, data_value TEXT)")
+
+    def emulator_data_table_insert(self, data_key : str, data_value : str):
+        self.cursor.execute("INSERT INTO emulator_data VALUES (?, ?)", (data_key, data_value))
+        self.db.commit()
+
+    def emulator_data_table_update(self, data_key : str, data_value : str):
+        self.cursor.execute("UPDATE emulator_data SET data_key = ? WHERE data_key = ?", (data_key, data_value))
+        self.db.commit()
+
+    def emulator_data_table_delete(self, data_key : str):
+        self.cursor.execute("DELETE FROM emulator_data WHERE data_key = ?", (data_key,))
+        self.db.commit()
+
+    def emulator_data_table_query(self, data_key : str):
+        data = self.cursor.execute("SELECT * FROM emulator_data WHERE data_key = ?", (data_key,))
+        return data.fetchone()
+
+    def emulator_data_version_get(self):
+        version = self.emulator_data_table_query("version")
+        return version
+
+    def emulator_data_version_set(self):
+        db_version = self.emulator_data_version_get()
+        if db_version is None:
+            self.emulator_data_table_insert("version", __version__)
+        else:
+            self.emulator_data_table_update("version", __version__)
 
     def camera_table_create(self):
-        self.cursor.execute("CREATE TABLE cameras( id INTEGER PRIMARY KEY , address TEXT NOT NUll, port INTEGER NOT NUll, model text NOT NULL )")
+        self.cursor.execute("CREATE TABLE cameras( id INTEGER PRIMARY KEY , address TEXT NOT NUll, port INTEGER NOT NUll, model TEXT NOT NULL )")
 
     def preset_table_create(self, camera_id : int):
-        sql_cmd = f"CREATE TABLE preset_{camera_id}(id INTEGER PRIMARY KEY, position_start_x TEXT NOT NUll, position_start_y TEXT NOT NUll, position_end_x TEXT NOT NUll, position_end_y TEXT NOT NUll, zoom_start TEXT NOT NUll, zoom_end TEXT NOT NUll, speed INT NOT NUll)"
+        sql_cmd = f"CREATE TABLE preset_{camera_id}(id INTEGER PRIMARY KEY, position_start_x INT, position_start_y INT, position_end_x INT, position_end_y INT, zoom_start INT, zoom_end INT, speed INT)"
         self.cursor.execute(sql_cmd)
 
     def preset_table_delete(self, camera_id : int):
@@ -78,7 +110,7 @@ class Database:
         else:
             return results
 
-    def preset_create(self, camera_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str, preset_id : int = None):
+    def preset_create(self, camera_id : int, position_start_x : int, position_start_y : int, position_end_x : int, position_end_y : int, zoom_start : int, zoom_end : int, speed : int, preset_id : int = None):
         if not self.camera_exists(camera_id):
             raise ValueError(f"No camera defined for id: {camera_id}")
         
@@ -93,7 +125,7 @@ class Database:
         self.cursor.execute(sql_statement, preset_data)
         self.db.commit()
 
-    def preset_update(self, camera_id : int, preset_id : int, position_start_x : str, position_start_y : str, position_end_x : str, position_end_y : str, zoom_start : str, zoom_end : str, speed : str):
+    def preset_update(self, camera_id : int, preset_id : int, position_start_x : int, position_start_y : int, position_end_x : int, position_end_y : int, zoom_start : int, zoom_end : int, speed : int):
         if self.camera_exists(camera_id):
             if self.preset_exists(camera_id, preset_id):
                 sql_statement = f" UPDATE preset_{camera_id} SET position_start_x = \'{position_start_x}\', position_start_y = \'{position_start_y}\', position_end_x = \'{position_end_x}\', position_end_y = \'{position_end_y}\', zoom_start = \'{zoom_start}\', zoom_end = \'{zoom_end}\', speed = \'{speed}\' WHERE id = \'{preset_id}\'"

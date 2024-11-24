@@ -36,11 +36,11 @@ class Camera:
     @staticmethod
     def __gen_speed_table():
         speed_able = {}
-        for x in range(1, 31):
+        for x in range(0, 30):
             speed_able[x] = (str(hex(x))[2:].zfill(2), "0")
         for x in range(31):
             speed_able[x+30] = str(hex(x))[2:].zfill(2), "1"
-        for x in range(31):
+        for x in range(30):
             speed_able[x+60] = (str(hex(x))[2:].zfill(2), "2")
         return speed_able
     @staticmethod
@@ -74,6 +74,8 @@ class Camera:
         response = requests.get(command_to_send)
         #update timestamp for last command
         self.time_of_last_command = current_time
+        print(command_to_send)
+        print(response.text)
         return response
 
     @staticmethod
@@ -137,7 +139,7 @@ class Camera:
 
     def power_query(self):
         resp = self.__send_command("O")
-        print(resp)
+        # print(resp)
         if resp.text == 'p1':
             return 1
         elif resp.text == 'p3':
@@ -145,8 +147,8 @@ class Camera:
         elif resp.text == 'p0':
             return 0
         else:
-            print(resp.text)
-            # raise "ERROR: Error retrieving power status."
+            # print(resp.text)
+            raise "ERROR: Error retrieving power status."
 
     def position_set_absolute(self, x : int, y : int):
         self.check_tuning()
@@ -222,7 +224,7 @@ class Camera:
 
     def zoom_set_absolute (self, zoom : int):
         zoom = self.int_to_head(zoom, self.zoom_min, self.zoom_max, self.zoom_min_head, self.zoom_max_head,3)
-        print(zoom)
+        # print(zoom)
         resp = self.__send_command("AXZ" + zoom.upper())
         return resp
 
