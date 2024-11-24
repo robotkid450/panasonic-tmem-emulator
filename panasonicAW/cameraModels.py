@@ -8,7 +8,7 @@ CAMERA_MODELS = {
             },
             "tilt":{
                 "angles" : (-30, 90),
-                "angles_head" : (21845, 36408),
+                "angles_head" : (36408, 21845),
                 "speed_bounds" : (1, 100),
                 "speed_max" : 180
             },
