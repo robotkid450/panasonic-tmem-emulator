@@ -61,24 +61,33 @@ app = FastAPI()
 
 @app.get("/api/test")
 def test_func():
-    return {"message": "test"}
+    logger.info("API Test function ran successfully")
+    return {"message": "API Test function ran successfully"}
 
 @app.get("/api/camera/add")
 def camera_add(model : str, address: str, port = 80):
+    logger.info("Attempting to add {model} at address {address".format(model=model, address=address))
     try:
         db.camera_add(model.upper(), address, port)
     except ValueError:
-        return {"Message": f"Error camera already exists at {address}"}
-    return {"SUCCESS": f"Camera at {address} added"}
+        error_message = "Error camera already exists at {address}".format(address=address)
+        logger.error(error_message)
+        return {"Message": error_message}
+    success_message = "Camera at {address} added successfully".format(address=address)
+    return {"SUCCESS": success_message}
 
 @app.get("/api/camera/delete")
 def camera_delete(camera_id : int):
+    logger.info("Attempting to delete camera {camera_id}".format(camera_id=camera_id))
     try:
         db.camera_delete(camera_id)
     except ValueError:
-        return {"ERROR": f"No camera defined for id {camera_id}"}
-    
-    return {"SUCCESS": f"Camera {camera_id} deleted."}
+        error_message = "Error camera {camera_id} does not exist".format(camera_id=camera_id)
+        logger.error(error_message)
+        return {"ERROR": error_message}
+    success_message = "Camera {camera_id} deleted successfully".format(camera_id=camera_id)
+    logger.info(success_message)
+    return {"SUCCESS": success_message}
 
 @app.get("/api/camera/list")
 def cameras_list():
