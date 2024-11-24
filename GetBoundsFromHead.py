@@ -57,5 +57,15 @@ pt_max = head.position_query_hex()
 time.sleep(0.4)
 zoom_max = head.zoom_query_hex()
 
+pt_min[0] = head.hex_to_int(pt_min[0])
+pt_min[1] = head.hex_to_int(pt_min[1])
+
+pt_max[0] = head.hex_to_int(pt_max[0])
+pt_max[1] = head.hex_to_int(pt_max[1])
+
+zoom_min = head.hex_to_int(zoom_min)
+zoom_max = head.hex_to_int(zoom_max)
+
+
 print(result_message.format(ip=ip, model=model, head_pan_min=pt_min[0], head_pan_max=pt_max[0],
     head_tilt_min=pt_min[1], head_tilt_max=pt_max[1], zoom_min_min=zoom_min, zoom_min_max=zoom_max))
