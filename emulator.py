@@ -1,13 +1,14 @@
 import asyncio
 import os
 
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, File, UploadFile
+from fastapi.responses import FileResponse
 
 from panasonicAW import ptzHead
 from tstore import memDb
 
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 dataBaseFile = "emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
@@ -213,6 +214,27 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
                              presetTempStorage.speed,
                              preset_id)
     return {"SUCCESS" : "Preset recorded"}
+
+@app.get("/api/db/backup")
+async def db_backup():
+    return FileResponse(path=dataBaseFile, filename=dataBaseFile, media_type="application/octet-stream")
+
+@app.post("/api/db/restore")
+async def db_restore(file: UploadFile = File(...)):
+    try:
+        contents = file.file.read()
+        with open(dataBaseFile, "wb") as f:
+            f.write(contents)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error uploading file")
+
+    finally:
+        file.file.close()
+
+    global db
+    db = memDb.Database(dataBaseFile)
+    db.connect_to_db()
+    return {"filename" : file.filename}
 
 
 if __name__ == "__main__":
