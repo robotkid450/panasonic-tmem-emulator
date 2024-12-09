@@ -10,6 +10,7 @@ from tstore import memDb
 
 logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
+logging.basicConfig(level=logging.DEBUG, filename="panasonicAW.log", filemode="w")
 
 __version__ = "2.1.3"
 
@@ -157,9 +158,6 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     speed = int(speed)
     if speed == -1:
         speed = preset_speed
-    print(local_get_preset(camera_id, preset_id))
-    print(max(head.speed_table))
-    print(head.speed_table[max(head.speed_table)])
     head.pan_tilt_stop()
     await asyncio.sleep(0.3)
     head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))

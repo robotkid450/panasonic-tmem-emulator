@@ -46,7 +46,6 @@ class Database:
 
     def emulator_data_version_set(self):
         db_version = self.emulator_data_version_get()
-        print("db_version: {db_version} __version__ : {version}".format(db_version=db_version, version=__version__))
         if db_version is None:
             self.emulator_data_table_insert(data_key="version", data_value=__version__)
         else:
