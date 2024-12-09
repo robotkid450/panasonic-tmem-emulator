@@ -236,6 +236,10 @@ async def db_restore(file: UploadFile = File(...)):
     db.connect_to_db()
     return {"filename" : file.filename}
 
+@app.get("/api/version")
+async def version():
+    return {"version" : db.emulator_data_version_get()}
+
 
 if __name__ == "__main__":
     import uvicorn
