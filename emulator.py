@@ -10,7 +10,7 @@ from tstore import memDb
 
 __version__ = "2.1.2"
 
-dataBaseFile = "emulator.db3"
+dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
 
