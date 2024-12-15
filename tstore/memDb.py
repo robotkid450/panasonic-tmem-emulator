@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 
-__version__ = "2.1.4"
+__version__ = "2.1.6"
 log = logging.getLogger(__name__)
 
 class Database:

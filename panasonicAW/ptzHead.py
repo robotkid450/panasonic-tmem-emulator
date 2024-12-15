@@ -5,7 +5,7 @@ from panasonicAW import cameraModels
 from panasonicAW import CameraExceptions
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.5"
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
