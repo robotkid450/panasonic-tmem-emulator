@@ -10,7 +10,7 @@ from tstore import memDb
 logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
 
-__version__ = "2.1.1"
+__version__ = "2.1.5"
 
 dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.00.1")
