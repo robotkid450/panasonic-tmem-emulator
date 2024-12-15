@@ -328,4 +328,6 @@ if __name__ == "__main__":
     os.makedirs("data", exist_ok=True)
     # logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
     logging.basicConfig(level=logging.INFO, filename="./data/panasonicAW.log")
+    logger.info("Starting Panasonic Emulator")
     uvicorn.run(app, host=apiHost, port=apiPort)
+    logger.info("Stopping Panasonic Emulator")
