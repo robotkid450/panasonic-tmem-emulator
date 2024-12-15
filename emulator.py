@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
 logging.basicConfig(level=logging.DEBUG, filename="data\panasonicAW.log", filemode="w")
 
-__version__ = "2.1.3"
+__version__ = "2.1.4"
 
 dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
