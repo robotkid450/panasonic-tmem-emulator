@@ -9,6 +9,7 @@ from tstore import memDb
 
 logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
+logging.getLogger("tstore.memDb")
 
 __version__ = "2.1.5"
 
@@ -267,7 +268,7 @@ async def rec_start(camera_id : int):
 
 @app.get("/api/preset/rec/end")
 async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
-    logger.info("Ending preset recording")
+    logger.info("Starting End preset recording")
     head = get_cam_head(camera_id)
     position_end_x, position_end_y = head.position_query()
     await asyncio.sleep(0.2)

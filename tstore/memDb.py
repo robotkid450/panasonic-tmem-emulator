@@ -1,6 +1,8 @@
+import logging
 import sqlite3
 
 __version__ = "2.1.4"
+logging.getLogger(__name__)
 
 class Database:
 
@@ -173,6 +175,7 @@ class Database:
             sql_statement = f"SELECT * FROM preset_{camera_id} where id={preset_id}"
             res = self.cursor.execute(sql_statement)
             results = res.fetchone()
+            logging.debug(results)
             return results
         else:
             raise ValueError(f"Preset: {preset_id} does not exist for camera: {camera_id}.")
