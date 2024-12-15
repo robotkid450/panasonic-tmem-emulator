@@ -116,7 +116,7 @@ dmypy.json
 
 *.pickle
 .vscode/
-emulator.db3
+data/emulator.db3
 emulator.db3-bak
 emulator.db3.home
 emulator.db3.rocks

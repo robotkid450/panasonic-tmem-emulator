@@ -1,6 +1,6 @@
 import sqlite3
 
-__version__ = "1.2.1"
+__version__ = "2.1.3"
 
 class Database:
 
@@ -19,6 +19,7 @@ class Database:
             self.camera_table_create()
             self.emulator_data_table_create()
             self.emulator_data_version_set()
+        self.emulator_data_version_set()
 
     def emulator_data_table_create(self):
         self.cursor.execute("CREATE TABLE emulator_data(data_key TEXT, data_value TEXT)")
@@ -28,7 +29,7 @@ class Database:
         self.db.commit()
 
     def emulator_data_table_update(self, data_key : str, data_value : str):
-        self.cursor.execute("UPDATE emulator_data SET data_key = ? WHERE data_key = ?", (data_key, data_value))
+        self.cursor.execute("UPDATE emulator_data SET data_value = ? WHERE data_key = ?", (str(data_value), str(data_key)))
         self.db.commit()
 
     def emulator_data_table_delete(self, data_key : str):
@@ -46,9 +47,9 @@ class Database:
     def emulator_data_version_set(self):
         db_version = self.emulator_data_version_get()
         if db_version is None:
-            self.emulator_data_table_insert("version", __version__)
+            self.emulator_data_table_insert(data_key="version", data_value=__version__)
         else:
-            self.emulator_data_table_update("version", __version__)
+            self.emulator_data_table_update(data_key="version", data_value=__version__)
 
     def camera_table_create(self):
         self.cursor.execute("CREATE TABLE cameras( id INTEGER PRIMARY KEY , address TEXT NOT NUll, port INTEGER NOT NUll, model TEXT NOT NULL )")
