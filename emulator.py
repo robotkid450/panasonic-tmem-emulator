@@ -12,8 +12,8 @@ logging.getLogger("panasonicAW.ptzHead")
 
 __version__ = "2.1.1"
 
-dataBaseFile = "emulator.db3"
-apiHost = os.environ.get("API_HOST", "127.0.0.1")
+dataBaseFile = "data/emulator.db3"
+apiHost = os.environ.get("API_HOST", "127.00.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
 
 
@@ -324,5 +324,6 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
 
 if __name__ == "__main__":
     import uvicorn
-    logging.basicConfig(level=logging.DEBUG)
+    os.makedirs("data", exist_ok=True)
+    logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
     uvicorn.run(app, host=apiHost, port=apiPort)
