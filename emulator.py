@@ -22,8 +22,8 @@ db = memDb.Database(dataBaseFile)
 db.connect_to_db()
 
 class TemporaryPreset:
-    def __init__(self, position_start_x : int = None, position_start_y : int = None, zoom_start : int = None,
-        position_end_x : int = None, position_end_y : int = None, zoom_end : int = None, speed : int = None):
+    def __init__(self, position_start_x : str = None, position_start_y : str = None, zoom_start : str = None,
+        position_end_x : str = None, position_end_y : str = None, zoom_end : str = None, speed : int = None):
         
         self.position_start_x = position_start_x
         self.position_start_y = position_start_y
@@ -57,9 +57,9 @@ def get_cam_head(camera_id : int):
     head = ptzHead.Camera(cam_data[1])
     return head
 
-def dump_preset_data(position_start_x : int, position_start_y : int,
-                  position_end_x : int, position_end_y : int,
-                  zoom_start : int, zoom_end : int, speed : int,
+def dump_preset_data(position_start_x : str, position_start_y : str,
+                  position_end_x : str, position_end_y : str,
+                  zoom_start : str, zoom_end : str, speed : int,
                   camera_id : int = "NA", preset_id : int = "NA",):
     logger.debug("Preset Data:")
     logger.debug("Camera ID: {camera_id}".format(camera_id=camera_id))
@@ -127,8 +127,8 @@ def camera_get(camera_id : int):
 
 
 @app.get("/api/preset/add")
-def preset_add(camera_id : int, position_start_x: int, position_start_y: int, position_end_x: int, position_end_y: int,
-               zoom_start : int, zoom_end : int, speed: int):
+def preset_add(camera_id : int, position_start_x: str, position_start_y: str, position_end_x: str, position_end_y: str,
+               zoom_start : str, zoom_end : str, speed: int):
     logger.info("Adding preset to {camera_id}".format(camera_id=camera_id))
     dump_preset_data(position_start_x=position_start_x, position_start_y=position_start_y, position_end_x=position_end_x,
                      position_end_y=position_end_y, zoom_start=zoom_start, zoom_end=zoom_end,
@@ -147,8 +147,8 @@ def preset_add(camera_id : int, position_start_x: int, position_start_y: int, po
 
 
 @app.get("/api/preset/update")
-def preset_update(camera_id : int, preset_id : int, position_start_x: int, position_start_y: int, position_end_x: int,
-                position_end_y: int, zoom_start : int, zoom_end : int, speed: int):
+def preset_update(camera_id : int, preset_id : int, position_start_x: str, position_start_y: str, position_end_x: str,
+                position_end_y: str, zoom_start : str, zoom_end : str, speed: int):
     logger.info("Updating preset {camera_id}".format(camera_id=camera_id))
     dump_preset_data(position_start_x=position_start_x, position_start_y=position_start_y,
                      position_end_x=position_end_x, position_end_y=position_end_y,
@@ -230,17 +230,17 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     logger.debug("Camera stopped")
     logger.debug("Moving to Start position")
     logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
-    head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))
+    head.position_set_absolute_with_speed_hex(pos_start_x, pos_start_y, max(head.speed_table))
     await asyncio.sleep(0.3)
     logger.info("Setting start Zoom")
     logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
-    head.zoom_set_absolute(zoom_start)
+    head.zoom_set_absolute_hex(zoom_start)
     logger.debug("Zoom set")
     await asyncio.sleep(1.5)
     logger.info("Running Camera Movement")
     logger.debug("Camera moving to X:{x} Y:{y} at speed: {speed}".format(
         x=pos_end_x, y=pos_end_y, speed=speed))
-    head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
+    head.position_set_absolute_with_speed_hex(pos_end_x, pos_end_y, speed)
     success_message = "Calling preset {preset_id} for camera {camera_id}".format(
         preset_id=preset_id,camera_id=camera_id)
     logger.info(success_message)
@@ -253,11 +253,11 @@ async def rec_start(camera_id : int):
     global presetTempStorage
     presetTempStorage.clear_temp() # Clear out temp storage before starting recording
     head = get_cam_head(camera_id)
-    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query()
+    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query_hex()
     logging.debug("Start position X:[{x} Y:{y}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y))
     await asyncio.sleep(0.2)
-    presetTempStorage.zoom_start = head.zoom_query()
+    presetTempStorage.zoom_start = head.zoom_query_hex()
     logger.debug("Zoom Start: {zoom}".format(zoom=presetTempStorage.zoom_start))
     success_message = "{x}:{y}:{z}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y,z=presetTempStorage.zoom_start
@@ -270,9 +270,9 @@ async def rec_start(camera_id : int):
 async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
     logger.info("Starting End preset recording")
     head = get_cam_head(camera_id)
-    position_end_x, position_end_y = head.position_query()
+    position_end_x, position_end_y = head.position_query_hex()
     await asyncio.sleep(0.2)
-    zoom_end = head.zoom_query()
+    zoom_end = head.zoom_query_hex()
     global presetTempStorage
     presetTempStorage.position_end_x = position_end_x
     presetTempStorage.position_end_y = position_end_y
