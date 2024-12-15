@@ -10,7 +10,6 @@ from tstore import memDb
 
 logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
-logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log", filemode="w")
 
 __version__ = "2.1.4"
 
