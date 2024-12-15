@@ -10,7 +10,7 @@ from tstore import memDb
 
 logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
-logging.basicConfig(level=logging.DEBUG, filename="data\panasonicAW.log", filemode="w")
+logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log", filemode="w")
 
 __version__ = "2.1.4"
 
@@ -68,7 +68,7 @@ def test_func():
 
 @app.get("/api/camera/add")
 def camera_add(model : str, address: str, port = 80):
-    logger.info("Attempting to add {model} at address {address".format(model=model, address=address))
+    logger.info("Attempting to add {model} at address {address}".format(model=model, address=address))
     try:
         db.camera_add(model.upper(), address, port)
     except ValueError:

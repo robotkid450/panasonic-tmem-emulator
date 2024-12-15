@@ -5,6 +5,4 @@ services:
       - "8005:8005"
     restart: "always"
     volumes:
-      - type: bind
-        source: ./data
-        target: /usr/src/app/data
+        - ./data:/usr/src/app/data
