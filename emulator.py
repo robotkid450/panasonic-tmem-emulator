@@ -253,5 +253,5 @@ async def version():
 
 if __name__ == "__main__":
     import uvicorn
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, filename="./data/emulator.log", filemode="w")
     uvicorn.run(app, host=apiHost, port=apiPort)
