@@ -13,7 +13,7 @@ logging.getLogger("panasonicAW.ptzHead")
 
 __version__ = "2.1.4"
 
-dataBaseFile = "data/emulator.db3"
+dataBaseFile = "./data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
 
@@ -252,5 +252,5 @@ async def version():
 
 if __name__ == "__main__":
     import uvicorn
-    logging.basicConfig(level=logging.DEBUG, filename="./data/emulator.log", filemode="w")
+    logging.basicConfig(level=logging.DEBUG)
     uvicorn.run(app, host=apiHost, port=apiPort)
