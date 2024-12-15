@@ -72,7 +72,7 @@ class Database:
                 raise ValueError(f"Address {cam_address} already in use.")
 
         cam_data = (address, port, model)
-        self.cursor.execute("INSERT INTO cameras(address, port, model) VALUES(?, ?, ?)", cam_data)
+        self.cursor.execute("INSERT INTO cameras (address, port, model) VALUES(?, ?, ?)", cam_data)
         self.db.commit()
         res = self.cursor.execute("SELECT * FROM cameras WHERE address LIKE ?", ( address,))
         camera_id, caddr, camera_port, cmodel = res.fetchone()
