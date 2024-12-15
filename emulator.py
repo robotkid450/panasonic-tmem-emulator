@@ -326,5 +326,6 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
 if __name__ == "__main__":
     import uvicorn
     os.makedirs("data", exist_ok=True)
-    logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
+    # logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
+    logging.basicConfig(level=logging.INFO, filename="./data/panasonicAW.log")
     uvicorn.run(app, host=apiHost, port=apiPort)
