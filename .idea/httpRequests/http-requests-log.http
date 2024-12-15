@@ -1,0 +1,9 @@
+GET http://localhost:8005/api/camera/add?model="AW-HE40"&address="192.168.1.150"
+Accept: application/json
+User-Agent: IntelliJ HTTP Client/PyCharm 2024.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+
+<> 2024-11-23T205454.200.json
+
+###
+
