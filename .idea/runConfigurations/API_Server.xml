@@ -23,7 +23,7 @@
             </DockerPortBindingImpl>
           </list>
         </option>
-        <option name="sourceFilePath" value="emulator/Dockerfile" />
+        <option name="sourceFilePath" value="api-server/Dockerfile" />
       </settings>
     </deployment>
     <method v="2" />

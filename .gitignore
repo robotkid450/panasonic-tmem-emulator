@@ -117,4 +117,4 @@ dmypy.json
 *.pickle
 .vscode/
 *.db3
-emulator/data
+api-server/data

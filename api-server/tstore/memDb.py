@@ -27,36 +27,36 @@ class Database:
         self.emulator_data_version_set()
 
     def emulator_data_table_create(self):
-        log.info("Creating emulator data table")
+        log.info("Creating api-server data table")
         self.cursor.execute("CREATE TABLE emulator_data(data_key TEXT, data_value TEXT)")
 
     def emulator_data_table_insert(self, data_key : str, data_value : str):
-        log.info("Inserting data into emulator data table {key} : {data}".format(key=data_key, data=data_value))
+        log.info("Inserting data into api-server data table {key} : {data}".format(key=data_key, data=data_value))
         self.cursor.execute("INSERT INTO emulator_data VALUES (?, ?)", (data_key, data_value))
         self.db.commit()
 
     def emulator_data_table_update(self, data_key : str, data_value : str):
-        log.info("Updating data into emulator data table {key} : {data}".format(key=data_key, data=data_value))
+        log.info("Updating data into api-server data table {key} : {data}".format(key=data_key, data=data_value))
         self.cursor.execute("UPDATE emulator_data SET data_value = ? WHERE data_key = ?", (str(data_value), str(data_key)))
         self.db.commit()
 
     def emulator_data_table_delete(self, data_key : str):
-        log.info("Deleting data from emulator data table {key}".format(key=data_key))
+        log.info("Deleting data from api-server data table {key}".format(key=data_key))
         self.cursor.execute("DELETE FROM emulator_data WHERE data_key = ?", (data_key,))
         self.db.commit()
 
     def emulator_data_table_query(self, data_key : str):
-        log.info("Querying data from emulator data table {key}".format(key=data_key))
+        log.info("Querying data from api-server data table {key}".format(key=data_key))
         data = self.cursor.execute("SELECT * FROM emulator_data WHERE data_key = ?", (data_key,))
         return data.fetchone()
 
     def emulator_data_version_get(self):
         version = self.emulator_data_table_query("version")
-        log.info("Getting version data from emulator data table : {version}".format(version=version))
+        log.info("Getting version data from api-server data table : {version}".format(version=version))
         return version
 
     def emulator_data_version_set(self):
-        log.info("Setting version data from emulator data table : {version}".format(version=__version__))
+        log.info("Setting version data from api-server data table : {version}".format(version=__version__))
         db_version = self.emulator_data_version_get()
         if db_version is None:
             self.emulator_data_table_insert(data_key="version", data_value=__version__)
