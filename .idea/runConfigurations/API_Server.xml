@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Docker" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+  <configuration default="false" name="API-Server" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
     <deployment type="dockerfile">
       <settings>
         <option name="containerName" value="Tmem" />
@@ -23,7 +23,7 @@
             </DockerPortBindingImpl>
           </list>
         </option>
-        <option name="sourceFilePath" value="Dockerfile" />
+        <option name="sourceFilePath" value="emulator/Dockerfile" />
       </settings>
     </deployment>
     <method v="2" />
