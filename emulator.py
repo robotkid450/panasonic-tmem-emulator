@@ -230,17 +230,17 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     logger.debug("Camera stopped")
     logger.debug("Moving to Start position")
     logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
-    head.position_set_absolute_with_speed_hex(pos_start_x, pos_start_y, max(head.speed_table))
+    head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))
     await asyncio.sleep(0.3)
     logger.info("Setting start Zoom")
     logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
-    head.zoom_set_absolute_hex(zoom_start)
+    head.zoom_set_absolute(zoom_start)
     logger.debug("Zoom set")
     await asyncio.sleep(1.5)
     logger.info("Running Camera Movement")
     logger.debug("Camera moving to X:{x} Y:{y} at speed: {speed}".format(
         x=pos_end_x, y=pos_end_y, speed=speed))
-    head.position_set_absolute_with_speed_hex(pos_end_x, pos_end_y, speed)
+    head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
     success_message = "Calling preset {preset_id} for camera {camera_id}".format(
         preset_id=preset_id,camera_id=camera_id)
     logger.info(success_message)
@@ -253,11 +253,11 @@ async def rec_start(camera_id : int):
     global presetTempStorage
     presetTempStorage.clear_temp() # Clear out temp storage before starting recording
     head = get_cam_head(camera_id)
-    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query_hex()
+    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query()
     logging.debug("Start position X:[{x} Y:{y}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y))
     await asyncio.sleep(0.2)
-    presetTempStorage.zoom_start = head.zoom_query_hex()
+    presetTempStorage.zoom_start = head.zoom_query()
     logger.debug("Zoom Start: {zoom}".format(zoom=presetTempStorage.zoom_start))
     success_message = "{x}:{y}:{z}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y,z=presetTempStorage.zoom_start
@@ -270,9 +270,9 @@ async def rec_start(camera_id : int):
 async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
     logger.info("Starting End preset recording")
     head = get_cam_head(camera_id)
-    position_end_x, position_end_y = head.position_query_hex()
+    position_end_x, position_end_y = head.position_query()
     await asyncio.sleep(0.2)
-    zoom_end = head.zoom_query_hex()
+    zoom_end = head.zoom_query()
     global presetTempStorage
     presetTempStorage.position_end_x = position_end_x
     presetTempStorage.position_end_y = position_end_y

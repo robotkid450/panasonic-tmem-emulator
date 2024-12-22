@@ -172,8 +172,10 @@ class Camera:
     def position_set_absolute(self, x : int, y : int):
         logger.info("Setting absolute position for %s to %s:%s", self.address, x, y)
         self.check_tuning()
-        x = self.int_to_head(x,self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head,4)
-        y = self.int_to_head(y, self.tilt_min, self.tilt_max, self.tilt_min_head, self.tilt_max_head,4)
+        # x = self.int_to_head(x,self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head,4)
+        # y = self.int_to_head(y, self.tilt_min, self.tilt_max, self.tilt_min_head, self.tilt_max_head,4)
+        x = self.int_to_hex(x)
+        y = self.int_to_hex(y)
 
         resp = self.__send_command("APC" + x.upper() + y.upper())
 
@@ -188,8 +190,11 @@ class Camera:
         logger.info("Setting absolute position with speed for %s to %s:%s with speed %s",
                      self.address, x, y, speed)
         self.check_tuning()
-        x = self.int_to_head(x, self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head, 4)
-        y = self.int_to_head(y, self.tilt_min, self.tilt_max, self.tilt_min_head, self.tilt_max_head, 4)
+        # x = self.int_to_head(x, self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head, 4)
+        # y = self.int_to_head(y, self.tilt_min, self.tilt_max, self.tilt_min_head, self.tilt_max_head, 4)
+
+        x = self.int_to_hex(x)
+        y = self.int_to_hex(y)
 
         if speed not in self.speed_table:
             raise ValueError("ERROR: Invalid speed requested")
@@ -248,9 +253,7 @@ class Camera:
         raw_pan = resp.text[3:-4]
         raw_tilt = resp.text[7:]
         pan = self.hex_to_int(raw_pan)
-        pan = self.range_conversion(pan, self.pan_min_head, self.pan_max_head, self.pan_min, self.pan_max)
         tilt = self.hex_to_int(raw_tilt)
-        tilt = self.range_conversion(tilt, self.tilt_min_head, self.tilt_max_head, self.tilt_min, self.tilt_max)
         pos = (pan, tilt)
         logger.info("Position: %s", pos)
         return pos
