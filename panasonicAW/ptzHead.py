@@ -3,6 +3,7 @@ import time
 import logging
 from panasonicAW import cameraModels
 from panasonicAW import CameraExceptions
+import threading
 
 
 __version__ = "1.0.5"
@@ -16,6 +17,7 @@ class Camera:
         self.speed_table = self.__gen_speed_table()
         self.address = address
         self.time_of_last_command = 0
+        self.update_speed = 0.3
         self.__command_prefix = '%23'
 
         self.__command_string = "{protocol}://{address}/cgi-bin/aw_ptz?cmd=%23{cmd}&res=1".format(protocol=protocol, address=self.address, cmd="{cmd}")
@@ -332,3 +334,27 @@ class Camera:
         resp = self.__send_command("UPVS")
         speed = int(resp.text[4:]) #strip data prefix and convert from string to int
         return speed
+
+
+class ThreadedHead(Camera):
+    def __init__(self, address, model = 'default', protcol='http'):
+        self.cmd_queue = []
+        self.run = False
+        Camera.__init__(self, address, model, protcol)
+
+    def add_to_queue(self, command):
+        print("adding to queue")
+        self.cmd_queue.append(command)
+
+    def remove_from_queue(self, command):
+        print("removed from queue")
+        self.cmd_queue.remove(command)
+
+
+    def execute_from_queue(self):
+        threading.Timer(0.14, self.execute_from_queue).start()
+        try:
+            print(self.cmd_queue.pop(0))
+        except IndexError:
+            print("No command to execute")
+        print("executing from queue")
