@@ -361,7 +361,7 @@ class ThreadedHead(Camera):
     def execute_from_queue(self):
         # threading.Timer(0.14, self.execute_from_queue).start()
         try:
-            print(self.cmd_queue.pop(0))
+            print(self.cmd_queue.get())
         except IndexError:
             print("No command to execute")
         print("executing from queue")
