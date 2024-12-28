@@ -1,6 +1,7 @@
 import requests
 import time
 import logging
+import queue
 from panasonicAW import cameraModels
 from panasonicAW import CameraExceptions
 import threading
@@ -337,22 +338,28 @@ class Camera:
 
 
 class ThreadedHead(Camera):
-    def __init__(self, address, model = 'default', protcol='http'):
-        self.cmd_queue = []
+    def __init__(self, cmd_queue : queue.Queue, address, model = 'default', protcol='http'):
+        self.cmd_queue = cmd_queue
         self.run = False
         Camera.__init__(self, address, model, protcol)
 
-    def add_to_queue(self, command):
-        print("adding to queue")
-        self.cmd_queue.append(command)
+    def runloop(self):
+        self.run = True
+        while self.run:
+            self.process_queue()
 
-    def remove_from_queue(self, command):
-        print("removed from queue")
-        self.cmd_queue.remove(command)
 
+    def process_queue(self):
+        if not self.cmd_queue.empty():
+            command = self.cmd_queue.get()
+            self.process_command(command)
+
+    def process_command(self, command):
+        print("processing command")
+        print("command: %s", command)
 
     def execute_from_queue(self):
-        threading.Timer(0.14, self.execute_from_queue).start()
+        # threading.Timer(0.14, self.execute_from_queue).start()
         try:
             print(self.cmd_queue.pop(0))
         except IndexError:
