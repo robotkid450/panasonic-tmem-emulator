@@ -1,10 +1,10 @@
 import requests
 import time
 import logging
-import queue
+import multiprocessing.queues
 from panasonicAW import cameraModels
 from panasonicAW import CameraExceptions
-import threading
+from panasonicAW import ipcBase
 
 
 __version__ = "1.0.5"
@@ -338,30 +338,59 @@ class Camera:
 
 
 class ThreadedHead(Camera):
-    def __init__(self, cmd_queue : queue.Queue, address, model = 'default', protcol='http'):
+    def __init__(self, cmd_queue : multiprocessing.Queue, resp_queue:multiprocessing.Queue,
+                 address, model = 'default', protcol='http'):
+        # logging.basicConfig(level=logging.DEBUG, filename="worker-{address}.log".format(address=address), filemode='w')
+        logging.basicConfig(level=logging.DEBUG)
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("Initializing ThreadedHead")
         self.cmd_queue = cmd_queue
-        self.run = False
+        self.resp_queue = resp_queue
+        self.run = True
         Camera.__init__(self, address, model, protcol)
+        self.logger.info("ThreadedHead initialized for {addr}".format(addr=self.address))
+        self.runloop()
+
 
     def runloop(self):
+        self.logger.info("Starting ThreadedHead main loop")
+        self.logger.debug("loop run : {}".format(self.run))
         self.run = True
         while self.run:
             self.process_queue()
+            if not self.run:
+                break
+        self.logger.info("Exiting ThreadedHead main loop")
 
 
     def process_queue(self):
         if not self.cmd_queue.empty():
-            command = self.cmd_queue.get()
-            self.process_command(command)
+            self.logger.debug("Queue not empty.")
+            ipc_command = self.cmd_queue.get()
+            self.logger.debug("IPC command: %s", ipc_command)
+            logger.info("Received command: %s", ipc_command.command)
+            self.process_command(ipc_command)
+        else:
+            pass
 
-    def process_command(self, command):
-        print("processing command")
-        print("command: %s", command)
+    def process_command(self, ipc_message):
+        self.logger.debug("processing command")
+        self.logger.debug("command: {cmd}".format(cmd=ipc_message.command))
+        match ipc_message.command:
+            case "Stop Main Loop":
+                self.logger.info("Stopping Main Loop")
+                resp = ipcBase.IPCResponse(response="Stopping Main Loop")
+                self.resp_queue.put(resp)
+                self.run = False
+                self.cmd_queue.close()
+                self.resp_queue.close()
+            case "ping":
+                self.logger.info("Ping | Pong")
+                resp = ipcBase.IPCResponse("pong", {"address": self.address})
+                self.resp_queue.put(resp)
 
-    def execute_from_queue(self):
-        # threading.Timer(0.14, self.execute_from_queue).start()
-        try:
-            print(self.cmd_queue.get())
-        except IndexError:
-            print("No command to execute")
-        print("executing from queue")
+            case "Position query":
+                self.logger.info("Position query")
+                pos = Camera.position_query(self)
+                resp = ipcBase.IPCResponse("Position query", {"position": pos})
+                self.resp_queue.put(resp)

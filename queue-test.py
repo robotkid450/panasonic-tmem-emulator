@@ -5,26 +5,15 @@ from multiprocessing.spawn import freeze_support
 import queueworker
 
 class IPCCmd:
-    def __init__(self, command :str = None, data_1 = None, data_2 = None, data_3 = None, data_4 = None,
-                 data_5 = None, data_6 = None):
+    def __init__(self, command :str = None, data = dict):
         self.command = command
-        self.data_1 = data_1
-        self.data_2 = data_2
-        self.data_3 = data_3
-        self.data_4 = data_4
-        self.data_5 = data_5
-        self.data_6 = data_6
+        self.data = data
 
 class IPCResponse:
-    def __init__(self, command :str = None, data_1 = None, data_2 = None, data_3 = None,data_4 = None,
-                 data_5 = None, data_6 = None):
-        self.command = command
-        self.data_1 = data_1
-        self.data_2 = data_2
-        self.data_3 = data_3
-        self.data_4 = data_4
-        self.data_5 = data_5
-        self.data_6 = data_6
+    def __init__(self, response :str = None, data = dict):
+        self.response = response
+        self.data = data
+
 
 
 if __name__ == "__main__":
