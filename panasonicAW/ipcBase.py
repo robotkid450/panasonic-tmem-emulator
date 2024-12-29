@@ -1,11 +1,11 @@
 class IPCCmd:
-    def __init__(self, command :str = None, data = dict):
-        self.command = command
+    def __init__(self, command :str = None, data : dict = None):
+        self.command = command.lower()
         self.data = data
 
 class IPCResponse:
-    def __init__(self, response :str = None, data = dict):
-        self.response = response
+    def __init__(self, response :str = None, data :dict = None):
+        self.response = response.lower()
         self.data = data
 
 class IPCException(Exception):

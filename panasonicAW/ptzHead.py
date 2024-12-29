@@ -101,14 +101,17 @@ class Camera:
 
     @staticmethod
     def int_to_hex(value, pad=4):
+        logger.debug("Converting %s to hex", value)
+        logger.debug(type(value))
         if type(value) == str:
-            value = int(value, 16)
+            value = int(value)
 
         value = hex(value)
 
         value = str(value)        
 
         value_pad = value[2:].zfill(pad)
+        logger.debug(value_pad)
         return value_pad
 
     @staticmethod
@@ -337,9 +340,9 @@ class Camera:
         return speed
 
 
-class ThreadedHead(Camera):
+class ProcessHeadWorker(Camera):
     def __init__(self, cmd_queue : multiprocessing.Queue, resp_queue:multiprocessing.Queue,
-                 address, model = 'default', protcol='http'):
+                 address, model = 'default', protocol='http'):
         # logging.basicConfig(level=logging.DEBUG, filename="worker-{address}.log".format(address=address), filemode='w')
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(__name__)
@@ -347,7 +350,7 @@ class ThreadedHead(Camera):
         self.cmd_queue = cmd_queue
         self.resp_queue = resp_queue
         self.run = True
-        Camera.__init__(self, address, model, protcol)
+        Camera.__init__(self, address, model, protocol)
         self.logger.info("ThreadedHead initialized for {addr}".format(addr=self.address))
         self.runloop()
 
@@ -377,7 +380,7 @@ class ThreadedHead(Camera):
         self.logger.debug("processing command")
         self.logger.debug("command: {cmd}".format(cmd=ipc_message.command))
         match ipc_message.command:
-            case "Stop Main Loop":
+            case "stop main loop":
                 self.logger.info("Stopping Main Loop")
                 resp = ipcBase.IPCResponse(response="Stopping Main Loop")
                 self.resp_queue.put(resp)
@@ -389,8 +392,149 @@ class ThreadedHead(Camera):
                 resp = ipcBase.IPCResponse("pong", {"address": self.address})
                 self.resp_queue.put(resp)
 
-            case "Position query":
-                self.logger.info("Position query")
+            case "position query":
+                self.logger.info("running Position query")
                 pos = Camera.position_query(self)
                 resp = ipcBase.IPCResponse("Position query", {"position": pos})
                 self.resp_queue.put(resp)
+
+            case "position set abs":
+                self.logger.info("running Position set abs")
+                self.logger.debug(ipc_message.data)
+                pos_x = ipc_message.data["position"][0]
+                pos_y = ipc_message.data["position"][1]
+                self.logger.debug("Position x: {}, y: {}".format(pos_x, pos_y))
+
+                Camera.position_set_absolute(self, pos_x, pos_y)
+
+            case "position move speed":
+                pass
+
+            case "zoom query":
+                pass
+
+
+            case "zoom set abs":
+                pass
+
+            case "zoom move speed":
+                pass
+
+class ProcessHeadDriver:
+    def __init__(self, address, model = 'default', protocol='http'):
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("Initializing ThreadedHeadDriver")
+        self.cmd_queue = multiprocessing.Queue()
+        self.resp_queue = multiprocessing.Queue()
+        self.address = address
+        self.model = model
+        self.protocol = protocol
+        head_process = multiprocessing.Process(target=ProcessHeadWorker,
+            args=(self.cmd_queue, self.resp_queue, self.address, self.model, self.protocol), daemon=True)
+
+        head_process.start()
+        self.logger.info("ThreadedHeadDriver initialized for {addr}".format(addr=self.address))
+
+    def _wait_for_response(self):
+        while self.resp_queue.qsize() == 0:
+            pass
+
+        ipc_resp = self.resp_queue.get()
+        self.logger.info("Received response: {}".format(ipc_resp.response))
+        return ipc_resp
+
+    def ping(self):
+        self.logger.info("Sending ping")
+        ipc = ipcBase.IPCCmd(command="ping")
+        self.cmd_queue.put(ipc)
+        self._wait_for_response()
+
+    def send_raw(self, data):
+        self.logger.info("Sending raw: {}".format(data))
+        pass
+
+    def power_set(self, state: int):
+        self.logger.info("Setting power state to {}".format(state))
+        pass
+
+    def power_query(self):
+        self.logger.info("Querying power state")
+        pass
+
+    def position_set_absolute(self, pos_x, pos_y):
+        self.logger.info("Setting absolute position to x: {x}, y: {y}".format(x=pos_x, y=pos_y))
+        pass
+
+    def position_set_absolute_hex(self, x: str, y: str):
+        self.logger.info("Setting absolute position to hex: {x}, {y}".format(x=x, y=y))
+        pass
+
+    def position_set_absolute_with_speed(self, x: int, y: int, speed: int):
+        self.logger.info(
+            "Setting abolute position to x: {x}, y: {y} with speed {s}".format(x=x, y=y, s=speed))
+        pass
+
+    def position_set_absolute_with_speed_hex(self, x: str, y: str, speed: int):
+        pass
+
+    def pan_set_speed(self, speed: int):
+        pass
+
+    def tilt_set_speed(self, speed: int):
+        pass
+
+    def pan_tilt_set_speed(self, pan_speed: int, tilt_speed: int):
+        pass
+
+    def pan_tilt_stop(self):
+        pass
+
+    def position_query(self):
+        pass
+
+    def zoom_set_absolute(self, zoom: int):
+        pass
+
+    def zoom_set_absolute_hex(self, zoom: str):
+        pass
+
+    def zoom_speed(self, speed: int):
+        pass
+
+    def zoom_stop(self):
+        pass
+
+    def zoom_query_hex(self):
+        pass
+
+    def zoom_query(self):
+        pass
+
+    def preset_play(self, preset: int):
+        pass
+
+    def preset_register(self, preset: int):
+        pass
+
+    def preset_delete(self, preset: int):
+        pass
+
+    def preset_query(self):
+        pass
+
+    def preset_speed_set(self, speed):
+        pass
+
+    def preset_speed_query(self):
+        pass
+
+
+
+
+
+
+if __name__ == "__main__":
+    h = ProcessHeadDriver("192.168.1.150", "AW-HE40")
+    h.ping()
+
+    

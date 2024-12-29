@@ -23,7 +23,7 @@ def kill():
 if __name__ == "__main__":
     h_c_q = multiprocessing.Queue()
     h_r_q = multiprocessing.Queue()
-    h = ptzHead.ThreadedHead
+    h = ptzHead.ThreadedHeadWorker
     multiprocessing.Process(target=h, args=(h_c_q, h_r_q, "192.168.1.150", "AW-HE40"), daemon=True).start()
 
     freeze_support()
@@ -46,6 +46,13 @@ if __name__ == "__main__":
                     logger.info("posq")
                     ipc = ipcBase.IPCCmd(command="Position query")
                     h_c_q.put(ipc)
+
+                case "poss":
+                    x = input("enter x: ")
+                    y = input("enter y: ")
+                    ipc = ipcBase.IPCCmd(command="position set abs", data={"position": (x, y)})
+                    h_c_q.put(ipc)
+
 
         logger.info("responce queue length: {}".format(h_r_q.qsize()))
         if not h_r_q.empty():
