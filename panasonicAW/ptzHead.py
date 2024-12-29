@@ -9,11 +9,12 @@ from panasonicAW import ipcBase
 
 __version__ = "1.0.5"
 # logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+
 
 class Camera:
 
     def __init__(self, address, model ="default", protocol = "http"):
+        self.logger = logging.getLogger(__name__ + "Camera")
         self.cam_config = cameraModels.CAMERA_MODELS[model]
         self.speed_table = self.__gen_speed_table()
         self.address = address
@@ -42,9 +43,8 @@ class Camera:
         except KeyError:
             self.tuning = False
 
-    @staticmethod
-    def __gen_speed_table():
-        logger.debug("Generating speed table")
+    def __gen_speed_table(self):
+        self.logger.debug("Generating speed table")
         speed_table = {}
         for x in range(0, 30):
             speed_table[x] = (str(hex(x))[2:].zfill(2), "0")
@@ -52,27 +52,26 @@ class Camera:
             speed_table[x+30] = str(hex(x))[2:].zfill(2), "1"
         for x in range(30):
             speed_table[x+60] = (str(hex(x))[2:].zfill(2), "2")
-        logger.debug("Speed table generated")
-        logger.debug(speed_table)
+        self.logger.debug("Speed table generated")
+        self.logger.debug(speed_table)
         return speed_table
     @staticmethod
     def __time_millis():
         milliseconds = int(round(time.time() * 1000))
         return milliseconds
 
-    @staticmethod
-    def __handle_cam_error(response):
+    def __handle_cam_error(self, response):
         camera_response_text = response.text
         error_code = camera_response_text[0:3]
         error_message = camera_response_text[4:]
         if error_code == "eR1":
-            logger.error("Camera Error: %s, %s", error_code, error_message)
+            self.logger.error("Camera Error: %s, %s", error_code, error_message)
             raise CameraExceptions.CameraCommandUnsupportedException(error_message)
         if error_code == "eR2":
-            logger.error("Camera Error: %s, %s", error_code, error_message)
+            self.logger.error("Camera Error: %s, %s", error_code, error_message)
             raise CameraExceptions.CameraBusyException(error_message)
         if error_code == "eR3":
-            logger.error("Camera Error: %s, %s", error_code, error_message)
+            self.logger.error("Camera Error: %s, %s", error_code, error_message)
             raise CameraExceptions.CameraOutSideSupportedRangeException(error_message)
         return response
 
@@ -95,14 +94,13 @@ class Camera:
         response = requests.get(command_to_send)
         #update timestamp for last command
         self.time_of_last_command = current_time
-        logger.debug(command_to_send)
+        self.logger.debug(command_to_send)
         self.__handle_cam_error(response)
         return response
 
-    @staticmethod
-    def int_to_hex(value, pad=4):
-        logger.debug("Converting %s to hex", value)
-        logger.debug(type(value))
+    def int_to_hex(self, value, pad=4):
+        self.logger.debug("Converting %s to hex", value)
+        self.logger.debug(type(value))
         if type(value) == str:
             value = int(value)
 
@@ -111,7 +109,7 @@ class Camera:
         value = str(value)        
 
         value_pad = value[2:].zfill(pad)
-        logger.debug(value_pad)
+        self.logger.debug(value_pad)
         return value_pad
 
     @staticmethod
@@ -150,12 +148,12 @@ class Camera:
         return preset
 
     def send_raw(self, command):
-        logger.debug("Sending command: %s to %s", command, self.address)
+        self.logger.debug("Sending command: %s to %s", command, self.address)
         response= self.__send_command(command)
         return response
 
     def power_set(self, state):
-        logger.info("Setting power state: %s to %s", state, self.address)
+        self.logger.info("Setting power state: %s to %s", state, self.address)
         if state not in self.__power_states:
             raise ValueError("ERROR: Invalid power state requested")
         else:
@@ -163,9 +161,9 @@ class Camera:
             return resp
 
     def power_query(self):
-        logger.info("Power query")
+        self.logger.info("Power query")
         resp = self.__send_command("O")
-        logger.info("power value : {0}".format(resp.text))
+        self.logger.info("power value : {0}".format(resp.text))
         if resp.text == 'p1':
             return 1
         elif resp.text == 'p3':
@@ -176,7 +174,7 @@ class Camera:
             raise ValueError("ERROR: Error retrieving power status.")
 
     def position_set_absolute(self, x : int, y : int):
-        logger.info("Setting absolute position for %s to %s:%s", self.address, x, y)
+        self.logger.info("Setting absolute position for %s to %s:%s", self.address, x, y)
         self.check_tuning()
         # x = self.int_to_head(x,self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head,4)
         # y = self.int_to_head(y, self.tilt_min, self.tilt_max, self.tilt_min_head, self.tilt_max_head,4)
@@ -188,12 +186,12 @@ class Camera:
         return resp
 
     def position_set_absolute_hex(self, x : str, y : str):
-        logger.info("Setting absolute position hex for %s to %s:%s", self.address, x, y)
+        self.logger.info("Setting absolute position hex for %s to %s:%s", self.address, x, y)
         resp = self.__send_command("APC" + str(x).upper() + str(y).upper())
         return resp
 
     def position_set_absolute_with_speed(self, x : int, y : int, speed : int):
-        logger.info("Setting absolute position with speed for %s to %s:%s with speed %s",
+        self.logger.info("Setting absolute position with speed for %s to %s:%s with speed %s",
                      self.address, x, y, speed)
         self.check_tuning()
         # x = self.int_to_head(x, self.pan_min, self.pan_max, self.pan_min_head, self.pan_max_head, 4)
@@ -210,7 +208,7 @@ class Camera:
         return resp
 
     def position_set_absolute_with_speed_hex(self, x : str, y : str, speed : int):
-        logger.info("Setting absolute position with speed hex for %s to %s:%s with speed %s",
+        self.logger.info("Setting absolute position with speed hex for %s to %s:%s with speed %s",
                      self.address, x, y, speed)
         resp = self.__send_command("APS" + str(x).upper() + str(y).upper()
             + str(self.speed_table[speed][0]).upper() + str(self.speed_table[speed][1]).upper())
@@ -218,21 +216,21 @@ class Camera:
         return resp
 
     def pan_set_speed(self, speed : int):
-        logger.info("Setting pan speed for %s to %s", self.address, speed)
+        self.logger.info("Setting pan speed for %s to %s", self.address, speed)
         self.range_check(speed, self.pan_speed_bounds[0], self.pan_speed_bounds[1])
         speed = str(speed).zfill(2)
         resp = self.__send_command("P" + speed)
         return resp
     
     def tilt_set_speed(self, speed : int):
-        logger.info("Setting tilt speed for %s to %s", self.address, speed)
+        self.logger.info("Setting tilt speed for %s to %s", self.address, speed)
         self.range_check(speed, self.tilt_speed_bounds[0], self.tilt_speed_bounds[1])
         speed = str(speed).zfill(2)
         resp = self.__send_command("T" + speed)
         return resp
     
     def pan_tilt_set_speed(self, pan_speed: int, tilt_speed : int):
-        logger.info("Setting pan tilt speed for %s to %s:%s", self.address, pan_speed, tilt_speed)
+        self.logger.info("Setting pan tilt speed for %s to %s:%s", self.address, pan_speed, tilt_speed)
         self.range_check(pan_speed, self.pan_speed_bounds[0], self.pan_speed_bounds[1])
         self.range_check(tilt_speed, self.tilt_speed_bounds[0], self.tilt_speed_bounds[1])
         pan_speed = str(pan_speed).zfill(2)
@@ -241,292 +239,103 @@ class Camera:
         return resp
 
     def pan_tilt_stop(self):
-        logger.info("Stopping pan tilt for %s", self.address)
+        self.logger.info("Stopping pan tilt for %s", self.address)
         return self.pan_tilt_set_speed(50, 50)
 
     def position_query_hex(self):
-        logger.info("Querying hex position")
+        self.logger.info("Querying hex position")
         resp = self.__send_command("APC")
         raw_pan = resp.text[3:-4]
         raw_tilt = resp.text[7:]
         pos = (raw_pan.upper(), raw_tilt.upper())
-        logger.info("Hex position: %s", pos)
+        self.logger.info("Hex position: %s", pos)
         return pos
 
     def position_query(self):
-        logger.info("Querying position")
+        self.logger.info("Querying position")
         resp = self.__send_command("APC")
         raw_pan = resp.text[3:-4]
         raw_tilt = resp.text[7:]
         pan = self.hex_to_int(raw_pan)
         tilt = self.hex_to_int(raw_tilt)
         pos = (pan, tilt)
-        logger.info("Position: %s", pos)
+        self.logger.info("Position: %s", pos)
         return pos
 
     def zoom_set_absolute (self, zoom : int):
-        logger.info("Setting absolute zoom for %s to %s", self.address, zoom)
+        self.logger.info("Setting absolute zoom for %s to %s", self.address, zoom)
         zoom = self.int_to_head(zoom, self.zoom_min, self.zoom_max, self.zoom_min_head, self.zoom_max_head,3)
         resp = self.__send_command("AXZ" + zoom.upper())
         return resp
 
     def zoom_set_absolute_hex (self, zoom : str):
-        logger.info("Setting absolute zoom hex for %s to %s", self.address, zoom)
+        self.logger.info("Setting absolute zoom hex for %s to %s", self.address, zoom)
         resp = self.__send_command("AXZ" + str(zoom).upper())
         return resp
 
     def zoom_speed(self, speed :int ):
-        logger.info("Setting zoom speed for %s to %s", self.address, speed)
+        self.logger.info("Setting zoom speed for %s to %s", self.address, speed)
         self.range_check(speed, 1, 99)
         speed = str(speed).zfill(2).upper()
         resp = self.__send_command("Z" + speed)
         return resp
 
     def zoom_stop(self):
-        logger.info("Stopping zoom for %s", self.address)
+        self.logger.info("Stopping zoom for %s", self.address)
         resp = self.zoom_speed(50)
         return resp
 
     def zoom_query_hex(self):
-        logger.info("Querying hex zoom for %s", self.address)
+        self.logger.info("Querying hex zoom for %s", self.address)
         resp = self.__send_command("GZ")
         zoom = resp.text[2:]
-        logger.info("Hex zoom: %s for %s", zoom, self.address)
+        self.logger.info("Hex zoom: %s for %s", zoom, self.address)
         return zoom
 
     def zoom_query(self):
-        logger.info("Querying zoom for %s", self.address)
+        self.logger.info("Querying zoom for %s", self.address)
         resp = self.__send_command("GZ")
         zoom = resp.text[2:]
         zoom = self.hex_to_int(zoom)
         zoom = self.range_conversion(zoom, self.zoom_min_head, self.zoom_max_head, self.zoom_min, self.zoom_max)
-        logger.info("Zoom: %s for %s", zoom, self.address)
+        self.logger.info("Zoom: %s for %s", zoom, self.address)
         return zoom
 
     def preset_play(self, preset : int):
-        logger.info("Playing  preset %s from %s", preset, self.address)
+        self.logger.info("Playing  preset %s from %s", preset, self.address)
         preset = self.__preset_check_padding(preset)
         resp = self.__send_command("R" + str(preset))
         return resp
     
     def preset_register(self, preset: int):
-        logger.info("registering  preset %s from %s", preset, self.address)
+        self.logger.info("registering  preset %s from %s", preset, self.address)
         preset = self.__preset_check_padding(preset)
         resp = self.__send_command("M" + str(preset))
         return resp
 
     def preset_delete(self, preset : int):
-        logger.info("deleting preset %s from %s", preset, self.address)
+        self.logger.info("deleting preset %s from %s", preset, self.address)
         preset = self.__preset_check_padding(preset)
         resp = self.__send_command("C" + str(preset))
         return resp
 
     def preset_query(self):
-        logger.info("querying preset for %s", self.address)
+        self.logger.info("querying preset for %s", self.address)
         resp = self.__send_command("S")
         preset = int(resp.text[1:]) #strip data prefix and convert from string to int
-        logger.info("Preset: %s for %s", preset, self.address)
+        self.logger.info("Preset: %s for %s", preset, self.address)
         return preset
 
     def preset_speed_set(self, speed):
-        logger.info("Setting preset recall speed for %s to %s", self.address, speed)
+        self.logger.info("Setting preset recall speed for %s to %s", self.address, speed)
         resp = self.__send_command("UPVS" + str(speed))
         return resp
 
     def preset_speed_query(self):
-        logger.info("querying preset recall speed for %s", self.address)
+        self.logger.info("querying preset recall speed for %s", self.address)
         resp = self.__send_command("UPVS")
         speed = int(resp.text[4:]) #strip data prefix and convert from string to int
         return speed
-
-
-class ProcessHeadWorker(Camera):
-    def __init__(self, cmd_queue : multiprocessing.Queue, resp_queue:multiprocessing.Queue,
-                 address, model = 'default', protocol='http'):
-        # logging.basicConfig(level=logging.DEBUG, filename="worker-{address}.log".format(address=address), filemode='w')
-        logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger(__name__)
-        self.logger.info("Initializing ThreadedHead")
-        self.cmd_queue = cmd_queue
-        self.resp_queue = resp_queue
-        self.run = True
-        Camera.__init__(self, address, model, protocol)
-        self.logger.info("ThreadedHead initialized for {addr}".format(addr=self.address))
-        self.runloop()
-
-
-    def runloop(self):
-        self.logger.info("Starting ThreadedHead main loop")
-        self.logger.debug("loop run : {}".format(self.run))
-        self.run = True
-        while self.run:
-            self.process_queue()
-            if not self.run:
-                break
-        self.logger.info("Exiting ThreadedHead main loop")
-
-
-    def process_queue(self):
-        if not self.cmd_queue.empty():
-            self.logger.debug("Queue not empty.")
-            ipc_command = self.cmd_queue.get()
-            self.logger.debug("IPC command: %s", ipc_command)
-            logger.info("Received command: %s", ipc_command.command)
-            self.process_command(ipc_command)
-        else:
-            pass
-
-    def process_command(self, ipc_message):
-        self.logger.debug("processing command")
-        self.logger.debug("command: {cmd}".format(cmd=ipc_message.command))
-        match ipc_message.command:
-            case "stop main loop":
-                self.logger.info("Stopping Main Loop")
-                resp = ipcBase.IPCResponse(response="Stopping Main Loop")
-                self.resp_queue.put(resp)
-                self.run = False
-                self.cmd_queue.close()
-                self.resp_queue.close()
-            case "ping":
-                self.logger.info("Ping | Pong")
-                resp = ipcBase.IPCResponse("pong", {"address": self.address})
-                self.resp_queue.put(resp)
-
-            case "position query":
-                self.logger.info("running Position query")
-                pos = Camera.position_query(self)
-                resp = ipcBase.IPCResponse("Position query", {"position": pos})
-                self.resp_queue.put(resp)
-
-            case "position set abs":
-                self.logger.info("running Position set abs")
-                self.logger.debug(ipc_message.data)
-                pos_x = ipc_message.data["position"][0]
-                pos_y = ipc_message.data["position"][1]
-                self.logger.debug("Position x: {}, y: {}".format(pos_x, pos_y))
-
-                Camera.position_set_absolute(self, pos_x, pos_y)
-
-            case "position move speed":
-                pass
-
-            case "zoom query":
-                pass
-
-
-            case "zoom set abs":
-                pass
-
-            case "zoom move speed":
-                pass
-
-class ProcessHeadDriver:
-    def __init__(self, address, model = 'default', protocol='http'):
-        self.logger = logging.getLogger(__name__)
-        self.logger.info("Initializing ThreadedHeadDriver")
-        self.cmd_queue = multiprocessing.Queue()
-        self.resp_queue = multiprocessing.Queue()
-        self.address = address
-        self.model = model
-        self.protocol = protocol
-        head_process = multiprocessing.Process(target=ProcessHeadWorker,
-            args=(self.cmd_queue, self.resp_queue, self.address, self.model, self.protocol), daemon=True)
-
-        head_process.start()
-        self.logger.info("ThreadedHeadDriver initialized for {addr}".format(addr=self.address))
-
-    def _wait_for_response(self):
-        while self.resp_queue.qsize() == 0:
-            pass
-
-        ipc_resp = self.resp_queue.get()
-        self.logger.info("Received response: {}".format(ipc_resp.response))
-        return ipc_resp
-
-    def ping(self):
-        self.logger.info("Sending ping")
-        ipc = ipcBase.IPCCmd(command="ping")
-        self.cmd_queue.put(ipc)
-        self._wait_for_response()
-
-    def send_raw(self, data):
-        self.logger.info("Sending raw: {}".format(data))
-        pass
-
-    def power_set(self, state: int):
-        self.logger.info("Setting power state to {}".format(state))
-        pass
-
-    def power_query(self):
-        self.logger.info("Querying power state")
-        pass
-
-    def position_set_absolute(self, pos_x, pos_y):
-        self.logger.info("Setting absolute position to x: {x}, y: {y}".format(x=pos_x, y=pos_y))
-        pass
-
-    def position_set_absolute_hex(self, x: str, y: str):
-        self.logger.info("Setting absolute position to hex: {x}, {y}".format(x=x, y=y))
-        pass
-
-    def position_set_absolute_with_speed(self, x: int, y: int, speed: int):
-        self.logger.info(
-            "Setting abolute position to x: {x}, y: {y} with speed {s}".format(x=x, y=y, s=speed))
-        pass
-
-    def position_set_absolute_with_speed_hex(self, x: str, y: str, speed: int):
-        pass
-
-    def pan_set_speed(self, speed: int):
-        pass
-
-    def tilt_set_speed(self, speed: int):
-        pass
-
-    def pan_tilt_set_speed(self, pan_speed: int, tilt_speed: int):
-        pass
-
-    def pan_tilt_stop(self):
-        pass
-
-    def position_query(self):
-        pass
-
-    def zoom_set_absolute(self, zoom: int):
-        pass
-
-    def zoom_set_absolute_hex(self, zoom: str):
-        pass
-
-    def zoom_speed(self, speed: int):
-        pass
-
-    def zoom_stop(self):
-        pass
-
-    def zoom_query_hex(self):
-        pass
-
-    def zoom_query(self):
-        pass
-
-    def preset_play(self, preset: int):
-        pass
-
-    def preset_register(self, preset: int):
-        pass
-
-    def preset_delete(self, preset: int):
-        pass
-
-    def preset_query(self):
-        pass
-
-    def preset_speed_set(self, speed):
-        pass
-
-    def preset_speed_query(self):
-        pass
 
 
 
@@ -534,6 +343,10 @@ class ProcessHeadDriver:
 
 
 if __name__ == "__main__":
+    logging.getLogger(__name__).setLevel(logging.DEBUG)
+    logging.getLogger(__name__ + "Camera")
+    logging.getLogger(__name__ + "ProcessHeadWorker")
+    logging.getLogger(__name__ + "ProcessHeadDriver")
     h = ProcessHeadDriver("192.168.1.150", "AW-HE40")
     h.ping()
 
