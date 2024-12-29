@@ -6,3 +6,11 @@ services:
     restart: "always"
     volumes:
         - ./api-server/data:/usr/src/app/data
+
+  front-end:
+    build: frontend/.
+    ports:
+      - "8080:80"
+    restart: "always"
+    volumes:
+      - ./frontend:/usr/local/apache2/htdocs/

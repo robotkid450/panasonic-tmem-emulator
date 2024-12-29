@@ -3,6 +3,7 @@ import os
 import logging
 
 from fastapi import FastAPI, status, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from panasonicAW import ptzHead
 from tstore import memDb
@@ -72,7 +73,21 @@ def dump_preset_data(position_start_x : str, position_start_y : str,
     logger.debug("Zoom end: {zoom_end}".format(zoom_end=zoom_end))
     logger.debug("Speed: {speed}".format(speed=speed))
     logger.debug("Preset Data END")
+
+
+
+
 app = FastAPI()
+origins = ["http://127.0.0.1:*",
+           "http://localhost:63342",
+           "http://192.168.1.99:8080"]
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins,
+                   allow_credentials=True,
+                   allow_methods=["*"],
+                   allow_headers=["*"]
+)
+
 
 @app.get("/api/test")
 def test_func():
