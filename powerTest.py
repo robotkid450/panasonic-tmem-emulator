@@ -1,6 +1,6 @@
 from multiprocessing.spawn import freeze_support
-from panasonicAW import ptzHead
 from panasonicAW import ipcBase
+from panasonicAW import ProcessHeadWorker
 import multiprocessing
 import logging
 import time
@@ -13,22 +13,22 @@ logger=logging.getLogger(__name__)
 
 
 def ping():
-    ipc = ipcBase.IPCCmd(command="ping")
-    h_c_q.put(ipc)
+    ipc_d = ipcBase.IPCCmd(command="ping")
+    h_c_q.put(ipc_d)
 
 def kill():
-    ipc = ipcBase.IPCCmd(command="Stop Main Loop")
-    h_c_q.put(ipc)
+    ipc_d = ipcBase.IPCCmd(command="Stop Main Loop")
+    h_c_q.put(ipc_d)
 
 if __name__ == "__main__":
     h_c_q = multiprocessing.Queue()
     h_r_q = multiprocessing.Queue()
-    h = ptzHead.ThreadedHeadWorker
+    h = ProcessHeadWorker.Worker
     multiprocessing.Process(target=h, args=(h_c_q, h_r_q, "192.168.1.150", "AW-HE40"), daemon=True).start()
 
     freeze_support()
     run = True
-    # ping()
+    # ping()s
     # h_q.get()
     while run is True:
         logger.info("starting cmd loop")
@@ -54,7 +54,7 @@ if __name__ == "__main__":
                     h_c_q.put(ipc)
 
 
-        logger.info("responce queue length: {}".format(h_r_q.qsize()))
+        logger.info("response queue length: {}".format(h_r_q.qsize()))
         if not h_r_q.empty():
             ipcResp = h_r_q.get()
             logger.info("ipc: %s", ipcResp)

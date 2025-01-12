@@ -1,20 +1,22 @@
 import requests
 import time
 import logging
-import multiprocessing.queues
 from panasonicAW import cameraModels
 from panasonicAW import CameraExceptions
-from panasonicAW import ipcBase
+
 
 
 __version__ = "1.0.5"
+
+
+
 # logging.basicConfig(level=logging.DEBUG)
 
 
 class Camera:
 
     def __init__(self, address, model ="default", protocol = "http"):
-        self.logger = logging.getLogger(__name__ + "Camera")
+        self.logger = logging.getLogger(__name__)
         self.cam_config = cameraModels.CAMERA_MODELS[model]
         self.speed_table = self.__gen_speed_table()
         self.address = address
@@ -56,7 +58,7 @@ class Camera:
         self.logger.debug(speed_table)
         return speed_table
     @staticmethod
-    def __time_millis():
+    def _time_millis():
         milliseconds = int(round(time.time() * 1000))
         return milliseconds
 
@@ -79,7 +81,7 @@ class Camera:
         #sends command to camera
 
         #fist check if command is being set to close to another
-        current_time = self.__time_millis()
+        current_time = self._time_millis()
         time_dif = current_time - self.time_of_last_command
         if self.time_of_last_command == 0:
             pass
@@ -343,11 +345,6 @@ class Camera:
 
 
 if __name__ == "__main__":
-    logging.getLogger(__name__).setLevel(logging.DEBUG)
-    logging.getLogger(__name__ + "Camera")
-    logging.getLogger(__name__ + "ProcessHeadWorker")
-    logging.getLogger(__name__ + "ProcessHeadDriver")
-    h = ProcessHeadDriver("192.168.1.150", "AW-HE40")
-    h.ping()
+    pass
 
     

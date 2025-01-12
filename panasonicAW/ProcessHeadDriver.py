@@ -2,16 +2,18 @@ import logging
 import multiprocessing
 from panasonicAW import ProcessHeadWorker
 from panasonicAW import ipcBase
-class ProcessHeadDriver:
+# from panasonicAW import ptzHead
+class Driver:
     def __init__(self, address, model = 'default', protocol='http'):
-        self.logger = logging.getLogger(__name__ + "ProcessHeadDriver")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
         self.logger.info("Initializing ProcessHeadDriver")
         self.cmd_queue = multiprocessing.Queue()
         self.resp_queue = multiprocessing.Queue()
         self.address = address
         self.model = model
         self.protocol = protocol
-        head_process = multiprocessing.Process(target=ProcessHeadWorker.ProcessHeadWorker,
+        head_process = multiprocessing.Process(target=ProcessHeadWorker.Worker,
             args=(self.cmd_queue, self.resp_queue, self.address, self.model, self.protocol), daemon=True)
 
         head_process.start()
@@ -23,8 +25,13 @@ class ProcessHeadDriver:
 
         ipc_resp = self.resp_queue.get()
         self.logger.info("Received response: {r} with data: {d}".format(r=ipc_resp.response, d=ipc_resp.data))
-        resp = (ipc_resp.response, ipc_resp.data)
-        return resp
+        resp_obj = (ipc_resp.response, ipc_resp.data)
+        return resp_obj
+
+    def _create_and_send_command(self, command : str, data : dict = None):
+        ipc_m = self.create_cmd(command,  data)
+        self.cmd_queue.put(ipc_m)
+        return self._wait_for_response()
 
     @staticmethod
     def create_cmd(command:str, data:dict = None):
@@ -33,54 +40,69 @@ class ProcessHeadDriver:
 
     def ping(self):
         self.logger.info("Sending ping")
-        ipc = self.create_cmd("ping")
-        self.cmd_queue.put(ipc)
-        self._wait_for_response()
+        return self._create_and_send_command("ping")
 
-    def send_raw(self, data):
-        self.logger.info("Sending raw: {}".format(data))
-        ipc = self.create_cmd("raw", {"raw": data})
-        self.cmd_queue.put(ipc)
-        return self._wait_for_response()
+    def stop(self):
+        self.logger.info("Sending stop")
+        return self._create_and_send_command("stop_main_loop")
+
+    # def send_raw(self, data):
+    #     self.logger.info("Sending raw: {}".format(data))
+    #     return self._create_and_send_command("raw", data)
 
     def power_set(self, state: int):
         self.logger.info("Setting power state to {}".format(state))
-
-        pass
+        return self._create_and_send_command("power_set", {"state": state})
 
     def power_query(self):
         self.logger.info("Querying power state")
-        pass
+        return self._create_and_send_command("power_query")
 
     def position_set_absolute(self, pos_x, pos_y):
         self.logger.info("Setting absolute position to x: {x}, y: {y}".format(x=pos_x, y=pos_y))
-        pass
+        data_to_send = {"x": pos_x, "y": pos_y}
+        return self._create_and_send_command("position_set_abs", data_to_send)
 
     def position_set_absolute_hex(self, x: str, y: str):
         self.logger.info("Setting absolute position to hex: {x}, {y}".format(x=x, y=y))
-        pass
+        data_to_send = {"x": x, "y": y}
+        return self._create_and_send_command("position_set_absolute_hex", data_to_send)
 
     def position_set_absolute_with_speed(self, x: int, y: int, speed: int):
         self.logger.info(
             "Setting absolute position to x: {x}, y: {y} with speed {s}".format(x=x, y=y, s=speed))
-        pass
+        data_to_send = {"x": x, "y": y, "speed": speed}
+        return self._create_and_send_command("position_set_absolute_with_speed", data_to_send)
 
     def position_set_absolute_with_speed_hex(self, x: str, y: str, speed: int):
-        pass
+        self.logger.info(
+            "Setting absolute position to x: {x}, y: {y} with speed {s}".format(x=x, y=y, s=speed))
+        data_to_send = {"x": x, "y": y, "speed": speed}
+        return self._create_and_send_command("position_set_absolute_with_speed_hex", data_to_send)
 
     def pan_set_speed(self, speed: int):
-        pass
+        self.logger.info("Setting pan speed to {s}".format(s=speed))
+        data_to_send = {"pan_speed" : speed, "tilt_speed" : None}
+        return self._create_and_send_command("pan_tilt_set_speed", data_to_send)
 
     def tilt_set_speed(self, speed: int):
-        pass
+        self.logger.info("Setting tilt speed to {s}".format(s=speed))
+        data_to_send = {"pan_speed" : None, "tilt_speed" : speed}
+        return self._create_and_send_command("pan_tilt_set_speed", data_to_send)
 
     def pan_tilt_set_speed(self, pan_speed: int, tilt_speed: int):
-        pass
+        self.logger.info("Setting pan:tilt speed to {}:{}".format(pan_speed, tilt_speed))
+        data_to_send = {"pan_speed" : pan_speed, "tilt_speed" : tilt_speed}
+        return self._create_and_send_command("pan_tilt_set_speed", data_to_send)
 
     def pan_tilt_stop(self):
-        pass
+        self.logger.info("Stopping pan tilt")
+        data_to_send = {"pan_speed": 50, "tilt_speed": 50}
+        return self._create_and_send_command("pan_tilt_set_speed", data_to_send)
 
     def position_query(self):
+        self.logger.info("Querying position")
+        return self._create_and_send_command("position_query")
         pass
 
     def zoom_set_absolute(self, zoom: int):
@@ -118,3 +140,9 @@ class ProcessHeadDriver:
 
     def preset_speed_query(self):
         pass
+
+if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    # driver_logger = logging.getLogger(__name__+"driver")
+    logging.basicConfig(level=logging.DEBUG)
+    d = Driver(address='192.168.1.150', model='AW-HE40', protocol='http')
