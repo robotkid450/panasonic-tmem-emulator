@@ -69,7 +69,7 @@ class Database:
 
     def preset_table_create(self, camera_id : int):
         log.info("Creating preset table for camera {camera_id}".format(camera_id=camera_id))
-        sql_cmd = f"CREATE TABLE preset_{camera_id}(id INTEGER PRIMARY KEY, position_start_x TEXT, position_start_y TEXT, position_end_x TEXT, position_end_y TEXT, zoom_start TEXT, zoom_end TEXT, speed INT)"
+        sql_cmd = f"CREATE TABLE preset_{camera_id}(id INTEGER PRIMARY KEY, position_start_x INT, position_start_y INT, position_end_x INT, position_end_y INT, zoom_start INT, zoom_end INT, speed INT)"
         self.cursor.execute(sql_cmd)
 
     def preset_table_delete(self, camera_id : int):

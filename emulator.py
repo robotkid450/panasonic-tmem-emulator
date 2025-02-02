@@ -1,6 +1,7 @@
 import asyncio
 import os
 import logging
+import time
 
 from fastapi import FastAPI, status, HTTPException
 
@@ -13,13 +14,19 @@ logging.getLogger("tstore.memDb")
 
 __version__ = "2.1.6"
 
+os.makedirs("data", exist_ok=True)
 dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
 
+camera_move_timeout = 240 #must be longer than the longest single move
+
 
 db = memDb.Database(dataBaseFile)
 db.connect_to_db()
+
+loop_futures = {}
+
 
 class TemporaryPreset:
     def __init__(self, position_start_x : str = None, position_start_y : str = None, zoom_start : str = None,
@@ -200,51 +207,62 @@ def preset_get(camera_id : int, preset_id : int):
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
-async def preset_call(camera_id : int, preset_id : int, speed = -1):
-    preset_id_from_db, address, port, model = get_camera_data(camera_id)
-    head = ptzHead.Camera(address, model)
+async def preset_call(camera_id : int, preset_id : int, speed = -1, loop: bool = False):
+    if camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+
+    if loop:
+        coro = local_call_preset_loop(camera_id, preset_id, speed)
+    else:
+        coro = local_call_prest(camera_id, preset_id, speed)
 
     try:
-        (preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end,
-            preset_speed) = local_get_preset(camera_id, preset_id)
-    except:
-        # return {"ERROR": "Preset or camera does not exist"}
-        error_message = "Preset: {pre_id} or camera {cam_id} does not exist".format(pre_id=preset_id, cam_id=camera_id)
-        logger.error(error_message)
+
+        future = asyncio.ensure_future(coro)
+        if loop:
+            loop_futures[camera_id] = future
+
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"ERROR": error_message}
+            detail={"ERROR": str(e)}
+        )
+    except TimeoutError as e:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail={"ERROR": str(e)}
         )
 
-    speed = int(speed)
-    if speed == -1:
-        speed = preset_speed
-
-    dump_preset_data(preset_id=preset_id, camera_id=camera_id,
-                     position_start_x=pos_start_x, position_start_y=pos_start_y,
-                     position_end_x=pos_end_x, position_end_y=pos_end_y,
-                     zoom_start=zoom_start,zoom_end=zoom_end,speed=speed)
-    logger.info("Stopping Camera movment")
-    head.pan_tilt_stop()
-    await asyncio.sleep(0.3)
-    logger.debug("Camera stopped")
-    logger.debug("Moving to Start position")
-    logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
-    head.position_set_absolute_with_speed_hex(pos_start_x, pos_start_y, max(head.speed_table))
-    await asyncio.sleep(0.3)
-    logger.info("Setting start Zoom")
-    logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
-    head.zoom_set_absolute_hex(zoom_start)
-    logger.debug("Zoom set")
-    await asyncio.sleep(1.5)
-    logger.info("Running Camera Movement")
-    logger.debug("Camera moving to X:{x} Y:{y} at speed: {speed}".format(
-        x=pos_end_x, y=pos_end_y, speed=speed))
-    head.position_set_absolute_with_speed_hex(pos_end_x, pos_end_y, speed)
     success_message = "Calling preset {preset_id} for camera {camera_id}".format(
-        preset_id=preset_id,camera_id=camera_id)
+        preset_id=preset_id,
+        camera_id=camera_id
+    )
     logger.info(success_message)
     return {"SUCCESS" : success_message}
+
+
+@app.get("/api/loop/stop")
+async def loop_stop(camera_id : int):
+    if camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+        head = get_cam_head(camera_id)
+        await asyncio.sleep(0.15)
+        head.pan_tilt_stop()
+        await asyncio.sleep(0.15)
+        head.zoom_stop()
+    return {"SUCCESS": "Loop stopped for camera {}".format(camera_id)}
+
+@app.get("/api/loop/stopAll")
+async def loop_stop_all():
+    for camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+        head = get_cam_head(camera_id)
+        await asyncio.sleep(0.15)
+        head.pan_tilt_stop()
+        await asyncio.sleep(0.15)
+        head.zoom_stop()
+
+    return {"SUCCESS": "Loop stopped for all cameras"}
 
 
 @app.get("/api/preset/rec/start")
@@ -253,11 +271,11 @@ async def rec_start(camera_id : int):
     global presetTempStorage
     presetTempStorage.clear_temp() # Clear out temp storage before starting recording
     head = get_cam_head(camera_id)
-    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query_hex()
+    presetTempStorage.position_start_x, presetTempStorage.position_start_y = head.position_query()
     logging.debug("Start position X:[{x} Y:{y}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y))
     await asyncio.sleep(0.2)
-    presetTempStorage.zoom_start = head.zoom_query_hex()
+    presetTempStorage.zoom_start = head.zoom_query()
     logger.debug("Zoom Start: {zoom}".format(zoom=presetTempStorage.zoom_start))
     success_message = "{x}:{y}:{z}".format(
         x=presetTempStorage.position_start_x, y=presetTempStorage.position_start_y,z=presetTempStorage.zoom_start
@@ -270,9 +288,9 @@ async def rec_start(camera_id : int):
 async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
     logger.info("Starting End preset recording")
     head = get_cam_head(camera_id)
-    position_end_x, position_end_y = head.position_query_hex()
+    position_end_x, position_end_y = head.position_query()
     await asyncio.sleep(0.2)
-    zoom_end = head.zoom_query_hex()
+    zoom_end = head.zoom_query()
     global presetTempStorage
     presetTempStorage.position_end_x = position_end_x
     presetTempStorage.position_end_y = position_end_y
@@ -323,11 +341,134 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
     return {"SUCCESS" : "Preset recorded"}
 
 
+async def local_call_preset_loop(camera_id : int, preset_id : int, speed = -1):
+    logger.info("Starting loop for preset {preset_id}".format(preset_id=preset_id))
+    while camera_id in loop_futures:
+        logger.info("moving forward")
+        await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=False)
+        logger.info("moving backward")
+        await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=True)
+
+
+
+
+
+async def local_call_prest(camera_id : int, preset_id : int, speed = -1, reverse=False):
+    preset_id_from_db, address, port, model = get_camera_data(camera_id)
+    head = ptzHead.Camera(address, model)
+
+    try:
+        (preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end,
+         preset_speed) = local_get_preset(camera_id, preset_id)
+    except:
+        # return {"ERROR": "Preset or camera does not exist"}
+        error_message = "Preset: {pre_id} or camera {cam_id} does not exist".format(pre_id=preset_id, cam_id=camera_id)
+        logger.error(error_message)
+        raise ValueError(error_message)
+
+    speed = int(speed)
+    if speed == -1:
+        speed = preset_speed
+
+    if reverse is True:
+        logger.info("Reversing preset {preset_id}".format(preset_id=preset_id))
+        temp_pos_start_x = pos_start_x
+        temp_pos_start_y = pos_start_y
+        temp_zoom_start = zoom_start
+        temp_pos_end_x = pos_end_x
+        temp_pos_end_y = pos_end_y
+        temp_zoom_end = zoom_end
+
+        pos_start_x = temp_pos_end_x
+        pos_start_y = temp_pos_end_y
+        zoom_start = temp_zoom_end
+        pos_end_x = temp_pos_start_x
+        pos_end_y = temp_pos_start_y
+        zoom_end = temp_zoom_start
+
+    dump_preset_data(preset_id=preset_id, camera_id=camera_id,
+                     position_start_x=pos_start_x, position_start_y=pos_start_y,
+                     position_end_x=pos_end_x, position_end_y=pos_end_y,
+                     zoom_start=zoom_start, zoom_end=zoom_end, speed=speed)
+
+    logger.debug("Moving to Start position")
+    logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
+    head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))
+    await asyncio.sleep(0.15)
+    logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
+    head.zoom_set_absolute(zoom_start)
+    # await asyncio.sleep(1.5)
+    # moving_to_position : bool = True
+    await local_wait_for_move(head=head,target_x=pos_start_x, target_y=pos_start_y, target_zoom=zoom_start, timeout=5)
+
+    await asyncio.sleep(0.15)
+    logger.info("Running Camera Movement")
+    logger.debug("Camera moving to X:{x} Y:{y} at speed: {speed}".format(
+        x=pos_end_x, y=pos_end_y, speed=speed))
+    head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
+    success_message = "Calling preset {preset_id} for camera {camera_id}".format(
+        preset_id=preset_id, camera_id=camera_id)
+    logger.info(success_message)
+    logger.debug("Waiting for preset movment to complete")
+    await asyncio.sleep(0.15)
+    await local_wait_for_move(head, target_x=pos_end_x, target_y=pos_end_y, target_zoom=zoom_end)
+    return {"SUCCESS": success_message}
+
+
+async def local_wait_for_move(head, target_x, target_y, target_zoom, timeout = camera_move_timeout):
+    target_reached: bool = False
+    zoom_change_completed: bool = False
+    position_change_completed: bool = False
+    x_change_complete: bool = False
+    y_change_complete: bool = False
+    call_exec_start_time = time.time()
+    logger.info("Waiting for Camera Movement")
+    logger.debug("Moving to target X:{x} Y:{y} Z:{z}".format(x=target_x, y=target_y,z=target_zoom))
+    while not target_reached:
+        if not position_change_completed:
+            await asyncio.sleep(0.15)
+            current_x, current_y = head.position_query()
+            logger.debug("position query")
+        if not zoom_change_completed:
+            await asyncio.sleep(0.15)
+            current_zoom = head.zoom_query()
+            logger.debug("zoom query")
+        logger.info("Target position x:{x} y:{y} z:{z}".format(x=target_x, y=target_y, z=target_zoom))
+        logger.info("Current Position X:{x} Y:{y} z:{z}".format(x=current_x, y=current_y,z=current_zoom))
+
+        x_diff = abs(target_x - current_x)
+        y_diff = abs(target_y - current_y)
+
+        if x_diff <= 3:
+            x_change_complete = True
+
+        if y_diff <= 3:
+            y_change_complete = True
+
+        if x_change_complete and y_change_complete:
+            position_change_completed = True
+
+        if abs((target_zoom - current_zoom)) <= 4:
+            zoom_change_completed = True
+
+        if position_change_completed:
+            if zoom_change_completed:
+                target_reached = True
+
+        logger.debug("Waiting on head to finish move for {} seconds.".format(time.time() - call_exec_start_time))
+        if time.time() - call_exec_start_time >= timeout:
+            error_message = "Timeout moving to target {x}:{y}:{z}".format(x=target_x, y=target_y,z=target_zoom)
+            logger.error(error_message)
+            raise TimeoutError(error_message)
+    logger.info("Camera Movement Completed")
+    return
+
+
 if __name__ == "__main__":
     import uvicorn
-    os.makedirs("data", exist_ok=True)
     # logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
-    logging.basicConfig(level=logging.INFO, filename="./data/panasonicAW.log")
+    # logging.basicConfig(level=logging.INFO, filename="./data/panasonicAW.log")
+    logging.basicConfig(level=logging.DEBUG)
     logger.info("Starting Panasonic Emulator")
     uvicorn.run(app, host=apiHost, port=apiPort)
     logger.info("Stopping Panasonic Emulator")
