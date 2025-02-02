@@ -102,7 +102,7 @@ class Camera:
 
     def int_to_hex(self, value, pad=4):
         self.logger.debug("Converting %s to hex", value)
-        self.logger.debug(type(value))
+        # self.logger.debug(type(value))
         if type(value) == str:
             value = int(value)
 
@@ -111,7 +111,7 @@ class Camera:
         value = str(value)        
 
         value_pad = value[2:].zfill(pad)
-        self.logger.debug(value_pad)
+        # self.logger.debug(value_pad)
         return value_pad
 
     @staticmethod
