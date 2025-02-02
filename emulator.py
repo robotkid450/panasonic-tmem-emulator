@@ -19,13 +19,13 @@ dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
 
-camera_move_timeout = 30 #must be longer than the longest single move
+camera_move_timeout = 240 #must be longer than the longest single move
 
 
 db = memDb.Database(dataBaseFile)
 db.connect_to_db()
 
-cams_running_loop = []
+loop_futures = {}
 
 
 class TemporaryPreset:
@@ -208,6 +208,9 @@ def preset_get(camera_id : int, preset_id : int):
 
 @app.get("/api/preset/call")
 async def preset_call(camera_id : int, preset_id : int, speed = -1, loop: bool = False):
+    if camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+
     if loop:
         coro = local_call_preset_loop(camera_id, preset_id, speed)
     else:
@@ -216,6 +219,9 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1, loop: bool =
     try:
 
         future = asyncio.ensure_future(coro)
+        if loop:
+            loop_futures[camera_id] = future
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -235,10 +241,28 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1, loop: bool =
     return {"SUCCESS" : success_message}
 
 
+@app.get("/api/loop/stop")
+async def loop_stop(camera_id : int):
+    if camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+        head = get_cam_head(camera_id)
+        await asyncio.sleep(0.15)
+        head.pan_tilt_stop()
+        await asyncio.sleep(0.15)
+        head.zoom_stop()
+    return {"SUCCESS": "Loop stopped for camera {}".format(camera_id)}
 
-# @app.get("/api/preset/call_loop")
-# async def preset_call_loop(camera_id : int, preset_id : int, speed = -1):
-#     pass
+@app.get("/api/loop/stopAll")
+async def loop_stop_all():
+    for camera_id in loop_futures:
+        loop_futures[camera_id].cancel()
+        head = get_cam_head(camera_id)
+        await asyncio.sleep(0.15)
+        head.pan_tilt_stop()
+        await asyncio.sleep(0.15)
+        head.zoom_stop()
+
+    return {"SUCCESS": "Loop stopped for all cameras"}
 
 
 @app.get("/api/preset/rec/start")
@@ -318,14 +342,12 @@ async def rec_end(camera_id : int, speed : int, preset_id :int = None ):
 
 
 async def local_call_preset_loop(camera_id : int, preset_id : int, speed = -1):
-    global cams_running_loop
-    cams_running_loop.append(camera_id)
     logger.info("Starting loop for preset {preset_id}".format(preset_id=preset_id))
-    # while camera_id in cams_running_loop:
-    logger.info("moving forward")
-    await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=False)
-    logger.info("moving backward")
-    await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=True)
+    while camera_id in loop_futures:
+        logger.info("moving forward")
+        await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=False)
+        logger.info("moving backward")
+        await local_call_prest(camera_id=camera_id, preset_id=preset_id, speed=speed, reverse=True)
 
 
 
@@ -373,10 +395,8 @@ async def local_call_prest(camera_id : int, preset_id : int, speed = -1, reverse
     logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
     head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))
     await asyncio.sleep(0.15)
-    logger.info("Setting start Zoom")
     logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
     head.zoom_set_absolute(zoom_start)
-    logger.debug("Zoom set")
     # await asyncio.sleep(1.5)
     # moving_to_position : bool = True
     await local_wait_for_move(head=head,target_x=pos_start_x, target_y=pos_start_y, target_zoom=zoom_start, timeout=5)
@@ -389,6 +409,8 @@ async def local_call_prest(camera_id : int, preset_id : int, speed = -1, reverse
     success_message = "Calling preset {preset_id} for camera {camera_id}".format(
         preset_id=preset_id, camera_id=camera_id)
     logger.info(success_message)
+    logger.debug("Waiting for preset movment to complete")
+    await asyncio.sleep(0.15)
     await local_wait_for_move(head, target_x=pos_end_x, target_y=pos_end_y, target_zoom=zoom_end)
     return {"SUCCESS": success_message}
 
@@ -397,6 +419,8 @@ async def local_wait_for_move(head, target_x, target_y, target_zoom, timeout = c
     target_reached: bool = False
     zoom_change_completed: bool = False
     position_change_completed: bool = False
+    x_change_complete: bool = False
+    y_change_complete: bool = False
     call_exec_start_time = time.time()
     logger.info("Waiting for Camera Movement")
     logger.debug("Moving to target X:{x} Y:{y} Z:{z}".format(x=target_x, y=target_y,z=target_zoom))
@@ -412,7 +436,16 @@ async def local_wait_for_move(head, target_x, target_y, target_zoom, timeout = c
         logger.info("Target position x:{x} y:{y} z:{z}".format(x=target_x, y=target_y, z=target_zoom))
         logger.info("Current Position X:{x} Y:{y} z:{z}".format(x=current_x, y=current_y,z=current_zoom))
 
-        if (target_x - current_x) <= 3 and (target_y - current_y) <= 3:
+        x_diff = abs(target_x - current_x)
+        y_diff = abs(target_y - current_y)
+
+        if x_diff <= 3:
+            x_change_complete = True
+
+        if y_diff <= 3:
+            y_change_complete = True
+
+        if x_change_complete and y_change_complete:
             position_change_completed = True
 
         if abs((target_zoom - current_zoom)) <= 4:

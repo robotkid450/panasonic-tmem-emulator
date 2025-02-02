@@ -57,7 +57,7 @@ CAMERA_MODELS = {
                 }
             },
             "zoom": {
-                "position_bounds": (1365, 4057),
+                "position_bounds": (1365, 4095),
                 "speed_bounds" : (1, 99),
             },
             "command_delay": 0.13,
@@ -77,7 +77,7 @@ CAMERA_MODELS = {
                 "speed_max" : 180
             },
             "zoom": {
-                "position_bounds": (1365, 4057),
+                "position_bounds": (1365, 4095),
                 "speed_bounds" : (1, 99),
             },
             "command_delay": 0.13,

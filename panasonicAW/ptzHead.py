@@ -128,7 +128,8 @@ class Camera:
     @staticmethod
     def range_check(value, minimum, maximum):
         if value < minimum or value > maximum:
-            raise ValueError("Range out of range")
+        # if not minimum < value < maximum:
+            raise ValueError(f"Value {value} must be between {minimum} and {maximum}")
 
     def int_to_head(self, value : int, human_minimum : int,
                     human_maximum : int, head_minimum : int, head_maximum : int, padding : int):
