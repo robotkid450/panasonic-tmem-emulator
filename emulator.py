@@ -204,7 +204,7 @@ def preset_get(camera_id : int, preset_id : int):
     return {"PRESET" : preset}
 
 @app.get("/api/preset/call")
-async def preset_call(camera_id : int, preset_id : int, speed = -1):
+async def preset_call(camera_id : int, preset_id : int, speed = -1, loop: bool = False):
     try:
         await local_call_prest(camera_id, preset_id, speed)
     except ValueError as e:
@@ -225,91 +225,6 @@ async def preset_call(camera_id : int, preset_id : int, speed = -1):
     logger.info(success_message)
     return {"SUCCESS" : success_message}
 
-    # preset_id_from_db, address, port, model = get_camera_data(camera_id)
-    # head = ptzHead.Camera(address, model)
-    #
-    # try:
-    #     (preset_id_from_db, pos_start_x, pos_start_y, pos_end_x, pos_end_y, zoom_start, zoom_end,
-    #         preset_speed) = local_get_preset(camera_id, preset_id)
-    # except:
-    #     # return {"ERROR": "Preset or camera does not exist"}
-    #     error_message = "Preset: {pre_id} or camera {cam_id} does not exist".format(pre_id=preset_id, cam_id=camera_id)
-    #     logger.error(error_message)
-    #     raise HTTPException(
-    #         status_code=status.HTTP_404_NOT_FOUND,
-    #         detail={"ERROR": error_message}
-    #     )
-    #
-    # speed = int(speed)
-    # if speed == -1:
-    #     speed = preset_speed
-    #
-    # dump_preset_data(preset_id=preset_id, camera_id=camera_id,
-    #                  position_start_x=pos_start_x, position_start_y=pos_start_y,
-    #                  position_end_x=pos_end_x, position_end_y=pos_end_y,
-    #                  zoom_start=zoom_start,zoom_end=zoom_end,speed=speed)
-    #
-    # logger.debug("Moving to Start position")
-    # logger.debug("Starting position X:{x} Y:{y}".format(x=pos_start_x, y=pos_start_y))
-    # head.position_set_absolute_with_speed(pos_start_x, pos_start_y, max(head.speed_table))
-    # call_exec_start_time = time.time()
-    # await asyncio.sleep(0.15)
-    # logger.info("Setting start Zoom")
-    # logger.debug("Starting Zoom:{zoom}".format(zoom=zoom_start))
-    # head.zoom_set_absolute(zoom_start)
-    # logger.debug("Zoom set")
-    # # await asyncio.sleep(1.5)
-    # # moving_to_position : bool = True
-    # zoom_change_completed : bool = False
-    # position_change_completed : bool = False
-    # # while moving_to_position:
-    # logger.debug("waiting for arrival")
-    # while not position_change_completed:
-    #     await asyncio.sleep(0.15)
-    #     current_x, current_y = head.position_query()
-    #     logger.debug("Position start_x {x} end_x {y}".format(x=pos_start_x, y=pos_start_y))
-    #     logger.debug("Position X:{x} Y:{y}".format(x=current_x, y=current_y))
-    #
-    #     if (pos_start_x - current_x) <= 3 and (pos_start_y - current_y) <= 3:
-    #         position_change_completed = True
-    #
-    #     logger.debug("Waiting on head to finish move for {} seconds.".format(time.time() - call_exec_start_time))
-    #     if time.time() - call_exec_start_time >= camera_move_timeout:
-    #         error_message = "Timeout calling preset: {pre_id} on cam: {cam_id}".format(pre_id=preset_id,
-    #             cam_id=camera_id)
-    #         logger.error(error_message)
-    #         raise HTTPException(
-    #             status_code=status.HTTP_408_REQUEST_TIMEOUT,
-    #             detail={"ERROR": error_message}
-    #         )
-    #
-    # while not zoom_change_completed:
-    #     await asyncio.sleep(0.15)
-    #     zoom = head.zoom_query()
-    #     logger.debug("Zoom: {zoom}".format(zoom=zoom))
-    #     logger.debug("zoom_start z:{z}".format(z=zoom_start))
-    #     if (zoom_start - zoom) <= 4:
-    #         zoom_change_completed = True
-    #
-    #     if time.time() - call_exec_start_time >= camera_move_timeout:
-    #         error_message = "Timeout calling preset: {pre_id} on cam: {cam_id}".format(pre_id=preset_id,
-    #             cam_id=camera_id)
-    #         logger.error(error_message)
-    #         raise HTTPException(
-    #             status_code=status.HTTP_408_REQUEST_TIMEOUT,
-    #             detail={"ERROR": error_message}
-    #         )
-    #
-    #
-    # await asyncio.sleep(0.15)
-    # logger.info("Running Camera Movement")
-    # logger.debug("Camera moving to X:{x} Y:{y} at speed: {speed}".format(
-    #     x=pos_end_x, y=pos_end_y, speed=speed))
-    # head.position_set_absolute_with_speed(pos_end_x, pos_end_y, speed)
-    # success_message = "Calling preset {preset_id} for camera {camera_id}".format(
-    #     preset_id=preset_id,camera_id=camera_id)
-    # logger.info(success_message)
-    # return {"SUCCESS" : success_message}
 
 
 # @app.get("/api/preset/call_loop")
@@ -425,39 +340,8 @@ async def local_call_prest(camera_id : int, preset_id : int, speed = -1):
     logger.debug("Zoom set")
     # await asyncio.sleep(1.5)
     # moving_to_position : bool = True
-    zoom_change_completed: bool = False
-    position_change_completed: bool = False
-    # while moving_to_position:
-    logger.debug("waiting for arrival")
-    while not position_change_completed:
-        await asyncio.sleep(0.15)
-        current_x, current_y = head.position_query()
-        logger.debug("Position start_x {x} end_x {y}".format(x=pos_start_x, y=pos_start_y))
-        logger.debug("Position X:{x} Y:{y}".format(x=current_x, y=current_y))
-
-        if (pos_start_x - current_x) <= 3 and (pos_start_y - current_y) <= 3:
-            position_change_completed = True
-
-        logger.debug("Waiting on head to finish move for {} seconds.".format(time.time() - call_exec_start_time))
-        if time.time() - call_exec_start_time >= camera_move_timeout:
-            error_message = "Timeout calling preset: {pre_id} on cam: {cam_id}".format(pre_id=preset_id,
-                                                                                       cam_id=camera_id)
-            logger.error(error_message)
-            raise TimeoutError(error_message)
-
-    while not zoom_change_completed:
-        await asyncio.sleep(0.15)
-        zoom = head.zoom_query()
-        logger.debug("Zoom: {zoom}".format(zoom=zoom))
-        logger.debug("zoom_start z:{z}".format(z=zoom_start))
-        if (zoom_start - zoom) <= 4:
-            zoom_change_completed = True
-
-        if time.time() - call_exec_start_time >= camera_move_timeout:
-            error_message = "Timeout calling preset: {pre_id} on cam: {cam_id}".format(pre_id=preset_id,
-                                                                                       cam_id=camera_id)
-            logger.error(error_message)
-            raise TimeoutError(error_message)
+    await local_wait_for_move(head=head,target_x=pos_start_x, target_y=pos_start_y, target_zoom=zoom_start,
+        call_exec_start_time=call_exec_start_time, )
 
     await asyncio.sleep(0.15)
     logger.info("Running Camera Movement")
@@ -469,6 +353,41 @@ async def local_call_prest(camera_id : int, preset_id : int, speed = -1):
     logger.info(success_message)
     return {"SUCCESS": success_message}
 
+
+async def local_wait_for_move(head, target_x, target_y, target_zoom, call_exec_start_time):
+    target_reached = False
+    zoom_change_completed: bool = False
+    position_change_completed: bool = False
+    # while moving_to_position:
+    logger.info("Waiting for Camera Movement")
+    logger.debug("Moving to target X:{x} Y:{y} Z:{z}".format(x=target_x, y=target_y,z=target_zoom))
+    while not target_reached:
+        if not position_change_completed:
+            await asyncio.sleep(0.15)
+            current_x, current_y = head.position_query()
+        if not zoom_change_completed:
+            await asyncio.sleep(0.15)
+            zoom = head.zoom_query()
+        logger.info("Target position x:{x} y:{y} z:{z}".format(x=target_x, y=target_y, z=target_zoom))
+        logger.info("Current Position X:{x} Y:{y} z:{z}".format(x=current_x, y=current_y,z=zoom))
+
+        if (target_x - current_x) <= 3 and (target_y - current_y) <= 3:
+            position_change_completed = True
+
+        if (target_zoom - zoom) <= 4:
+            zoom_change_completed = True
+
+        if position_change_completed and zoom_change_completed:
+            target_reached = True
+            break
+
+        logger.debug("Waiting on head to finish move for {} seconds.".format(time.time() - call_exec_start_time))
+        if time.time() - call_exec_start_time >= camera_move_timeout:
+            error_message = "Timeout moving to target {x}:{y}:{z}".format(x=target_x, y=target_y,z=target_zoom)
+            logger.error(error_message)
+            raise TimeoutError(error_message)
+
+    return
 
 
 if __name__ == "__main__":
