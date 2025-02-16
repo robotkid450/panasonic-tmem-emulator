@@ -21,7 +21,7 @@ console_handler = logging.StreamHandler()
 
 
 
-__version__ = "2.1.6"
+__version__ = "2.2.2"
 
 os.makedirs("data", exist_ok=True)
 dataBaseFile = "data/emulator.db3"
