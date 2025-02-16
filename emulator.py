@@ -426,11 +426,11 @@ async def local_wait_for_move(head, target_x, target_y, target_zoom, timeout = c
     logger.debug("Moving to target X:{x} Y:{y} Z:{z}".format(x=target_x, y=target_y,z=target_zoom))
     while not target_reached:
         if not position_change_completed:
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(0.25)
             current_x, current_y = head.position_query()
             logger.debug("position query")
         if not zoom_change_completed:
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(0.25)
             current_zoom = head.zoom_query()
             logger.debug("zoom query")
         logger.info("Target position x:{x} y:{y} z:{z}".format(x=target_x, y=target_y, z=target_zoom))
