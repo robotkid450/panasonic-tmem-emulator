@@ -2,6 +2,7 @@ FROM python:3
 
 ENV API_HOST=0.0.0.0
 ENV APT_PORT=8005
+ENV DEBUG="False"
 
 WORKDIR /usr/src/app
 

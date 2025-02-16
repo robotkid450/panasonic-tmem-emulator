@@ -12,12 +12,22 @@ logger = logging.getLogger(__name__)
 logging.getLogger("panasonicAW.ptzHead")
 logging.getLogger("tstore.memDb")
 
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+file_handler = logging.FileHandler('data/panasonicAW.log')
+
+console_handler = logging.StreamHandler()
+
+
+
+
 __version__ = "2.1.6"
 
 os.makedirs("data", exist_ok=True)
 dataBaseFile = "data/emulator.db3"
 apiHost = os.environ.get("API_HOST", "127.0.0.1")
 apiPort = int(os.environ.get("API_PORT", 8005))
+debugMode = os.environ.get("DEBUG", "FALSE")
 
 camera_move_timeout = 240 #must be longer than the longest single move
 
@@ -466,9 +476,23 @@ async def local_wait_for_move(head, target_x, target_y, target_zoom, timeout = c
 
 if __name__ == "__main__":
     import uvicorn
-    # logging.basicConfig(level=logging.DEBUG, filename="./data/panasonicAW.log")
-    # logging.basicConfig(level=logging.INFO, filename="./data/panasonicAW.log")
-    logging.basicConfig(level=logging.DEBUG)
+
+    if debugMode == "True":
+        logger.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
+    else:
+        logger.setLevel(logging.INFO)
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
     logger.info("Starting Panasonic Emulator")
+    logger.debug("Running in debug mode")
     uvicorn.run(app, host=apiHost, port=apiPort)
     logger.info("Stopping Panasonic Emulator")
